@@ -1,0 +1,11 @@
+{
+    "overrides": [
+        {
+            "files": "*.sol",
+            "options": {
+                "printWidth": 90,
+                "compiler": "0.8.20"
+            }
+        }
+    ]
+}

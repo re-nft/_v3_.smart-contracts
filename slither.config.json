@@ -1,0 +1,20 @@
+{
+    "detectors_to_exclude": "naming-convention, reentrancy-events, solc-version, timestamp, assembly",
+    "filter_paths": "(src/examples|lib|test)",
+    "solc_remaps": [
+        "@ds-test/=lib/forge-std/lib/ds-test/src/",
+        "@forge-std/=lib/forge-std/src/",
+        "@openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
+        "@safe-contracts/=lib/safe-contracts/contracts/",
+        "@src/=src/",
+        "@test/=test/",
+        "@merkle-generator/=lib/merkle-proof-generator/src/",
+        "@scripts/=scripts/",
+        "@seaport-types/=lib/seaport-types/src/",
+        "@seaport-core/=lib/seaport-core/src/",
+        "seaport-types/=lib/seaport-types/",
+        "seaport-core/=lib/seaport-core/",
+        "@solady/=lib/Solady/src/",
+        "@seaport-sol/=lib/seaport-sol/src/"
+    ]
+}

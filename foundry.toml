@@ -1,0 +1,38 @@
+[profile.default]
+solc = "0.8.22"
+src = "src"
+out = "out"
+script = "scripts"
+libs = ["lib"]
+
+# solidity 0.8.22 defaults to the shanghai fork which introduces the PUSH0 opcode.
+# Most chains outside of mainnet have not implemented this opcode yet, so we explicitly
+# make sure solidity compiles using the paris fork to maintain cross-chain compatibility
+evm_version = "paris"
+
+remappings = [
+    "@ds-test/=lib/forge-std/lib/ds-test/src/",
+    "@forge-std/=lib/forge-std/src/",
+    "@openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
+    "@safe-contracts/=lib/safe-contracts/contracts/",
+    "@src/=src/",
+    "@test/=test/",
+    "@merkle-generator/=lib/merkle-proof-generator/src/",
+    "@scripts/=scripts/",
+    "@seaport-types/=lib/seaport-types/src/",
+    "@seaport-core/=lib/seaport-core/src/",
+    "seaport-types/=lib/seaport-types/",
+    "seaport-core/=lib/seaport-core/",
+    "@solady/=lib/Solady/src/",
+    "@seaport-sol/=lib/seaport-sol/src/",
+]
+
+fs_permissions = [{ access = 'read', path = './scripts/config/' }]
+
+[etherscan]
+mumbai = { key = "${API_KEY_POLYGONSCAN}" }
+sepolia = { key = "${API_KEY_ETHERSCAN}" }
+
+[rpc_endpoints]
+mumbai = "https://polygon-mumbai.g.alchemy.com/v2/${API_KEY_RPC_MUMBAI}"
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${API_KEY_RPC_SEPOLIA}"

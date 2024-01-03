@@ -1,0 +1,379 @@
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.20;
+
+import {BaseGuard} from "@safe-contracts/base/GuardManager.sol";
+import {Enum} from "@safe-contracts/common/Enum.sol";
+import {LibString} from "@solady/utils/LibString.sol";
+
+import {IHook} from "@src/interfaces/IHook.sol";
+import {Kernel, Policy, Permissions, Keycode} from "@src/Kernel.sol";
+import {toKeycode} from "@src/libraries/KernelUtils.sol";
+import {Storage} from "@src/modules/Storage.sol";
+import {
+    shared_set_approval_for_all_selector,
+    e721_approve_selector,
+    e721_safe_transfer_from_1_selector,
+    e721_safe_transfer_from_2_selector,
+    e721_transfer_from_selector,
+    e721_approve_token_id_offset,
+    e721_safe_transfer_from_1_token_id_offset,
+    e721_safe_transfer_from_2_token_id_offset,
+    e721_transfer_from_token_id_offset,
+    e1155_safe_transfer_from_selector,
+    e1155_safe_batch_transfer_from_selector,
+    e1155_safe_transfer_from_token_id_offset,
+    e1155_safe_batch_transfer_from_token_id_offset,
+    gnosis_safe_set_guard_selector,
+    gnosis_safe_enable_module_selector,
+    gnosis_safe_disable_module_selector,
+    gnosis_safe_enable_module_offset,
+    gnosis_safe_disable_module_offset
+} from "@src/libraries/RentalConstants.sol";
+import {Errors} from "@src/libraries/Errors.sol";
+
+/**
+ * @title Guard
+ * @notice Acts as an interface for all behavior related to guarding transactions
+ *         that originate from a rental wallet.
+ */
+contract Guard is Policy, BaseGuard {
+    /////////////////////////////////////////////////////////////////////////////////
+    //                         Kernel Policy Configuration                         //
+    /////////////////////////////////////////////////////////////////////////////////
+
+    // Modules that the policy depends on.
+    Storage public STORE;
+
+    /**
+     * @dev Instantiate this contract as a policy.
+     *
+     * @param kernel_ Address of the kernel contract.
+     */
+    constructor(Kernel kernel_) Policy(kernel_) {}
+
+    /**
+     * @notice Upon policy activation, configures the modules that the policy depends on.
+     *         If a module is ever upgraded that this policy depends on, the kernel will
+     *         call this function again to ensure this policy has the current address
+     *         of the module.
+     *
+     * @return dependencies Array of keycodes which represent modules that
+     *                      this policy depends on.
+     */
+    function configureDependencies()
+        external
+        override
+        onlyKernel
+        returns (Keycode[] memory dependencies)
+    {
+        dependencies = new Keycode[](1);
+
+        dependencies[0] = toKeycode("STORE");
+        STORE = Storage(getModuleAddress(toKeycode("STORE")));
+    }
+
+    /**
+     * @notice Upon policy activation, permissions are requested from the kernel to access
+     *         particular keycode <> function selector pairs. Once these permissions are
+     *         granted, they do not change and can only be revoked when the policy is
+     *         deactivated by the kernel.
+     *
+     * @return requests Array of keycode <> function selector pairs which represent
+     *                  permissions for the policy.
+     */
+    function requestPermissions()
+        external
+        view
+        override
+        onlyKernel
+        returns (Permissions[] memory requests)
+    {
+        requests = new Permissions[](2);
+        requests[0] = Permissions(toKeycode("STORE"), STORE.updateHookPath.selector);
+        requests[1] = Permissions(toKeycode("STORE"), STORE.updateHookStatus.selector);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    //                            Internal Functions                               //
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @dev Loads a `bytes32` value from calldata.
+     *
+     * @param data   Calldata of the transaction to execute.
+     * @param offset Byte offset where the value starts.
+     *
+     * @return value The value retrieved from the data.
+     */
+    function _loadValueFromCalldata(
+        bytes memory data,
+        uint256 offset
+    ) private pure returns (bytes32 value) {
+        // Load the `uint256` from calldata at the offset.
+        assembly {
+            value := mload(add(data, offset))
+        }
+    }
+
+    /**
+     * @dev Reverts if the token is actively rented.
+     *
+     * @param selector Function selector which cannot be called
+     * @param safe     Address of the safe that originated the call
+     * @param token    Address of the token which is actively rented.
+     * @param tokenId  ID of the token which is actively rented.
+     */
+    function _revertSelectorOnActiveRental(
+        bytes4 selector,
+        address safe,
+        address token,
+        uint256 tokenId
+    ) private view {
+        // Check if the selector is allowed.
+        if (STORE.isRentedOut(safe, token, tokenId)) {
+            revert Errors.GuardPolicy_UnauthorizedSelector(selector);
+        }
+    }
+
+    /**
+     * @dev Reverts if the extension is not whitelisted.
+     *
+     * @param extension Address of the extension.
+     */
+    function _revertNonWhitelistedExtension(address extension) private view {
+        // Check if the extension is whitelisted.
+        if (!STORE.whitelistedExtensions(extension)) {
+            revert Errors.GuardPolicy_UnauthorizedExtension(extension);
+        }
+    }
+
+    /**
+     * @dev Forwards a gnosis safe call to a hook contract for further processing.
+     *
+     * @param hook  Address of the hook contract.
+     * @param safe  Address of the rental wallet that originated the call.
+     * @param to    Address that the call is directed to.
+     * @param value Value of ether sent with the call.
+     * @param data  Calldata to execute.
+     */
+    function _forwardToHook(
+        address hook,
+        address safe,
+        address to,
+        uint256 value,
+        bytes memory data
+    ) private {
+        // Call the `onTransaction` hook function.
+        try IHook(hook).onTransaction(safe, to, value, data) {} catch Error(
+            string memory revertReason
+        ) {
+            // Revert with reason given.
+            revert Errors.Shared_HookFailString(revertReason);
+        } catch Panic(uint256 errorCode) {
+            // Convert solidity panic code to string.
+            string memory stringErrorCode = LibString.toString(errorCode);
+
+            // Revert with panic code.
+            revert Errors.Shared_HookFailString(
+                string.concat("Hook reverted: Panic code ", stringErrorCode)
+            );
+        } catch (bytes memory revertData) {
+            // Fallback to an error that returns the byte data.
+            revert Errors.Shared_HookFailBytes(revertData);
+        }
+    }
+
+    /**
+     * @dev Prevent transactions that involve transferring an ERC721 or ERC1155 in any
+     *      way, and prevent transactions that involve changing the modules or the
+     *      guard contract.
+     *
+     * @param from Rental safe address that initiated the transaction.
+     * @param to Address that the data is targetted to.
+     * @param data Calldata of the transaction.
+     */
+    function _checkTransaction(address from, address to, bytes memory data) private view {
+        bytes4 selector;
+
+        // Load in the function selector.
+        assembly {
+            selector := mload(add(data, 0x20))
+        }
+
+        if (selector == e721_safe_transfer_from_1_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(
+                _loadValueFromCalldata(data, e721_safe_transfer_from_1_token_id_offset)
+            );
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == e721_safe_transfer_from_2_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(
+                _loadValueFromCalldata(data, e721_safe_transfer_from_2_token_id_offset)
+            );
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == e721_transfer_from_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(
+                _loadValueFromCalldata(data, e721_transfer_from_token_id_offset)
+            );
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == e721_approve_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(
+                _loadValueFromCalldata(data, e721_approve_token_id_offset)
+            );
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == e1155_safe_transfer_from_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(
+                _loadValueFromCalldata(data, e1155_safe_transfer_from_token_id_offset)
+            );
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == gnosis_safe_enable_module_selector) {
+            // Load the extension address from calldata.
+            address extension = address(
+                uint160(
+                    uint256(
+                        _loadValueFromCalldata(data, gnosis_safe_enable_module_offset)
+                    )
+                )
+            );
+
+            // Check if the extension is whitelisted.
+            _revertNonWhitelistedExtension(extension);
+        } else if (selector == gnosis_safe_disable_module_selector) {
+            // Load the extension address from calldata.
+            address extension = address(
+                uint160(
+                    uint256(
+                        _loadValueFromCalldata(data, gnosis_safe_disable_module_offset)
+                    )
+                )
+            );
+
+            // Check if the extension is whitelisted.
+            _revertNonWhitelistedExtension(extension);
+        } else {
+            // Revert if the `setApprovalForAll` selector is specified. This selector is
+            // shared between ERC721 and ERC1155 tokens.
+            if (selector == shared_set_approval_for_all_selector) {
+                revert Errors.GuardPolicy_UnauthorizedSelector(
+                    shared_set_approval_for_all_selector
+                );
+            }
+
+            // Revert if the `safeBatchTransferFrom` selector is specified. There's no
+            // cheap way to check if individual items in the batch are rented out.
+            // Each token ID would require a call to the storage contract to check
+            // its rental status.
+            if (selector == e1155_safe_batch_transfer_from_selector) {
+                revert Errors.GuardPolicy_UnauthorizedSelector(
+                    e1155_safe_batch_transfer_from_selector
+                );
+            }
+
+            // Revert if the `setGuard` selector is specified.
+            if (selector == gnosis_safe_set_guard_selector) {
+                revert Errors.GuardPolicy_UnauthorizedSelector(
+                    gnosis_safe_set_guard_selector
+                );
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    //                            External Functions                               //
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /** @notice Checks a transaction initiated by a rental safe to decide whether
+     *          it can be allowed or not. During this check, execution control flow
+     *          will be passed to an external hook contract if one exists for the
+     *          target contract.
+     *
+     * @param to             Destination address of Safe transaction.
+     * @param value          Ether value of Safe transaction.
+     * @param data           Data payload of Safe transaction.
+     * @param operation      Operation type of Safe transaction.
+     */
+    function checkTransaction(
+        address to,
+        uint256 value,
+        bytes memory data,
+        Enum.Operation operation,
+        uint256,
+        uint256,
+        uint256,
+        address,
+        address payable,
+        bytes memory,
+        address
+    ) external override {
+        // Disallow transactions that use delegate call, unless explicitly
+        // permitted by the protocol.
+        if (operation == Enum.Operation.DelegateCall && !STORE.whitelistedDelegates(to)) {
+            revert Errors.GuardPolicy_UnauthorizedDelegateCall(to);
+        }
+
+        // Require that a function selector exists.
+        if (data.length < 4) {
+            revert Errors.GuardPolicy_FunctionSelectorRequired();
+        }
+
+        // Fetch the hook to interact with for this transaction.
+        address hook = STORE.contractToHook(to);
+        bool isActive = STORE.hookOnTransaction(hook);
+
+        // If a hook exists and is enabled, forward the control flow to the hook.
+        if (hook != address(0) && isActive) {
+            _forwardToHook(hook, msg.sender, to, value, data);
+        }
+        // If no hook exists, use basic tx check.
+        else {
+            _checkTransaction(msg.sender, to, data);
+        }
+    }
+
+    /**
+     * @notice Performs any checks after execution. This is left unimplemented.
+     *
+     * @param txHash Hash of the transaction.
+     * @param success Whether the transaction succeeded.
+     */
+    function checkAfterExecution(bytes32 txHash, bool success) external override {}
+
+    /**
+     * @notice Connects a target contract to a hook.
+     *
+     * @param to   The destination contract of a call.
+     * @param hook The hook middleware contract to sit between the call
+     *             and the destination.
+     */
+    function updateHookPath(address to, address hook) external onlyRole("GUARD_ADMIN") {
+        STORE.updateHookPath(to, hook);
+    }
+
+    /**
+     * @notice Toggle the status of a hook contract, which defines the functionality
+     *         that the hook supports.
+     *
+     * @param hook The hook contract address.
+     * @param bitmap Bitmap of the status.
+     */
+    function updateHookStatus(
+        address hook,
+        uint8 bitmap
+    ) external onlyRole("GUARD_ADMIN") {
+        STORE.updateHookStatus(hook, bitmap);
+    }
+}
