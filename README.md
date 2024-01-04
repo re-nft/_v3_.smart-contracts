@@ -1,42 +1,7 @@
-# Contracts
+# reNFT Smart Contracts
 
-Generalised collateral-free rentals built on top of Gnosis Safe and Seaport.
-
-## Audit
-
-### In Scope
-
-We used "Solidity Metrics" VS Code plugin to compute nSLOC.
-
-Test line coverage was computed from running `forge coverage`.
-
-| Directory    | File                | nSLOC | LOC  | Test Line Coverage |
-| ------------ | ------------------- | ----- | ---- | ------------------ |
-| src/modules  | PaymentEscrow.sol   | 156   | 307  | 96%                |
-| src/modules  | Storage.sol         | 106   | 258  | 97.62%             |
-| src/packages | Accumulator.sol     | 46    | 127  | 100%               |
-| src/packages | Reclaimer.sol       | 41    | 75   | 84.62%             |
-| src/packages | Signer.sol          | 195   | 314  | 54.55%             |
-| src/policies | Admin.sol           | 58    | 111  | 100%               |
-| src/policies | Create.sol          | 365   | 617  | 95.52%             |
-| src/policies | Factory.sol         | 78    | 134  | 100%               |
-| src/policies | Guard.sol           | 161   | 285  | 100%               |
-| src/policies | Stop.sol            | 162   | 288  | 98.33%             |
-| -            | Create2Deployer.sol | 44    | 83   | 91.67%             |
-| -            | Kernel.sol          | 251   | 401  | 75.96%             |
-| Total        | -                   | 1663  | 3000 |                    |
-
-Files by priority: Create.sol, Stop.sol, Guard.sol, Storage.sol,
-PaymentEscrow.sol, Reclaimer.sol
-
-Adiitional notes about focus points:
-
-- construction of a seaport order that would result in ERC721/ERC115 assets not
-  being in the safe wallet after a rental has been started
-- construction of a seaport order that would result in ERC20 assets not being
-  sent to the PaymentEscrow.sol contract after a rental has been started
-- Potential re-entrancy using hook contracts that would result in a rented asset
-  from being removed from a safe wallet
+Generalised collateral-free and permissionless rentals built on top of Gnosis
+Safe and Seaport.
 
 ## Testing
 
@@ -68,17 +33,22 @@ slither .
 - Recipient of ERC721 / ERC1155 tokens is always the reNFT smart contract renter
   wallet
 - Recipient of ERC20 tokens is always the Payment Escrow Module
-- Stored token balance of the `src/modules/PaymentEscrow.sol` contract should never be
-  less than the true token balance of the contract
+- Stored token balance of the `src/modules/PaymentEscrow.sol` contract should
+  never be less than the true token balance of the contract
 - Rental safes can never make a call to `setGuard()`
 - Rental safes can never make a call to `enableModule()` or `disableModule`
   unless the target has been whitelisted by `src/policies/Admin.sol`
-- Rental safes can never make a delegatecall unless the target has been whitelisted by `src/policies/Admin.sol`
+- Rental safes can never make a delegatecall unless the target has been
+  whitelisted by `src/policies/Admin.sol`
 - ERC721 / ERC1155 tokens cannot leave a rental wallet via `approve()`,
-  `setApprovalForAll()`, `safeTransferFrom()`, `transferFrom()`, or `safeBatchTransferFrom()`
+  `setApprovalForAll()`, `safeTransferFrom()`, `transferFrom()`, or
+  `safeBatchTransferFrom()`
 - Hooks can be specified for ERC721 and ERC1155 items
-- Only one hook can act as middleware to a target contract at one time. But, there is no limit on the amount of hooks that can execute during rental start or stop.
-- When control flow is passed to hook contracts, the rental concerning the hook will be active and a record of it will be stored in `src/modules/Storage.sol`
+- Only one hook can act as middleware to a target contract at one time. But,
+  there is no limit on the amount of hooks that can execute during rental start
+  or stop.
+- When control flow is passed to hook contracts, the rental concerning the hook
+  will be active and a record of it will be stored in `src/modules/Storage.sol`
 
 ## Generalized Rental Guards
 
@@ -138,10 +108,10 @@ struct Hook {
 
 ### Routing a call to the proper hook
 
-After a renter has successfully rented an ERC721/ERC1155, the `src/policies/Guard.sol`
-contract will be invoked each time a transaction originates from the wallet. The
-contract will check its mapping for any hooks in the path of the interacting
-address.
+After a renter has successfully rented an ERC721/ERC1155, the
+`src/policies/Guard.sol` contract will be invoked each time a transaction
+originates from the wallet. The contract will check its mapping for any hooks in
+the path of the interacting address.
 
 If a hook exists, the control flow will be handed over to the hook contract for
 further processing.
@@ -151,8 +121,8 @@ restrictions that prevents the usage of ERC721/ERC1155 state-changing functions.
 
 ### Implementing a hook
 
-Example implementations of hooks can be found in the `src/examples/restricted-selector/` 
-folder. 
+Example implementations of hooks can be found in the
+`src/examples/restricted-selector/` folder.
 
 Per each erc721 `GameToken` ID, this hook uses a bitmap which tracks any
 function selectors that are restricted for that token ID only. Bitmaps allow
@@ -186,19 +156,20 @@ instantiation to enable the module and guard contract, the
 instantiation and overwrite the active guard or enable a new module.
 
 To mitigate this attack vector while still allowing delegate call, the contracts
-use a whitelist to allow delegate call to specific addresses that are deemed safe. For
-example, a contract dedicated to updating a gnosis safe module to a newer version
-could be whitelisted by the protocol to allow a rental safe to call it.
+use a whitelist to allow delegate call to specific addresses that are deemed
+safe. For example, a contract dedicated to updating a gnosis safe module to a
+newer version could be whitelisted by the protocol to allow a rental safe to
+call it.
 
 ### Dishonest ERC721/ERC1155 Implementations
 
-The `src/policies/Guard.sol` contract can only protect against the transfer of tokens
-that faithfully implement the ERC721/ERC1155 spec. A dishonest implementation
-that adds an additional function to transfer the token to another wallet cannot
-be prevented by the protocol.
+The `src/policies/Guard.sol` contract can only protect against the transfer of
+tokens that faithfully implement the ERC721/ERC1155 spec. A dishonest
+implementation that adds an additional function to transfer the token to another
+wallet cannot be prevented by the protocol.
 
 ### Rebasing or Fee-On-Transfer ERC20 Implementations
 
-The protocol contracts do not expect to be interacting with any ERC20 token 
-balances that can change during transfer due to a fee, or change balance while 
+The protocol contracts do not expect to be interacting with any ERC20 token
+balances that can change during transfer due to a fee, or change balance while
 owned by the `src/modules/PaymentEscrow.sol` contract.
