@@ -120,6 +120,11 @@ library Errors {
     error CreatePolicy_UnexpectedPaymentEscrowRecipient(address paymentRecipient);
 
     /**
+     * @dev Thrown when a rent duration that is too long is specified. 
+     */
+    error CreatePolicy_RentDurationTooLong(uint256 rentDuration);
+    
+    /**
      * @dev Thrown when a rent duration of zero is specified.
      */
     error CreatePolicy_RentDurationZero();

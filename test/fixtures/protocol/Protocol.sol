@@ -244,6 +244,9 @@ contract Protocol is BaseExternal {
         // Grant `stop_admin` role to the address which can skim funds from the payment escrow
         kernel.grantRole(toRole("STOP_ADMIN"), deployer.addr);
 
+        // Set the maximum rent duration to 21 days
+        admin.setMaxRentDuration(21 days);
+
         // Stop impersonating the deployer
         vm.stopPrank();
     }

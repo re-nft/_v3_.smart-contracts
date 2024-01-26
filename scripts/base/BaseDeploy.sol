@@ -464,4 +464,14 @@ contract BaseDeploy is Deployer {
         // Grant role for privileged access
         kernel.grantRole(toRole(role), to);
     }
+
+    function _setFee(uint256 numerator) internal broadcast {
+        // Set the protocol fee
+        admin.setFee(numerator);
+    }
+
+    function _setMaxRentDuration(uint256 duration) internal broadcast {
+        // Set the max rent duration
+        admin.setMaxRentDuration(duration);
+    }
 }

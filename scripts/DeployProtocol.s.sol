@@ -59,6 +59,9 @@ contract DeployProtocol is BaseDeploy {
         _grantRole("CREATE_SIGNER", config.serverSideSigner());
         _grantRole("SEAPORT", address(seaport));
 
+        // Set max rent duration
+        _setMaxRentDuration(21 days);
+
         // display banners
         _displayChainInfo();
         _displayProtocolAddressesBanner();
