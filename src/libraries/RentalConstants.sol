@@ -59,4 +59,4 @@ bytes4 constant gnosis_safe_disable_module_selector = 0xe009cfde;
 
 // Module offsets for gnosis safe
 uint256 constant gnosis_safe_enable_module_offset = 0x24;
-uint256 constant gnosis_safe_disable_module_offset = 0x24;
+uint256 constant gnosis_safe_disable_module_offset = 0x44;
