@@ -135,4 +135,11 @@ contract Proxy_Storage_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(abi.encodeWithSelector(Errors.Proxy_OnlyCallByProxy.selector));
         storageImplementation.freeze();
     }
+
+    function test_Reverts_SetMaxRentDuration_NotByProxy() public {
+        // expect revert because the implementation contract is accessed
+        // instead of the proxy
+        vm.expectRevert(abi.encodeWithSelector(Errors.Proxy_OnlyCallByProxy.selector));
+        storageImplementation.setMaxRentDuration(21 days);
+    }
 }
