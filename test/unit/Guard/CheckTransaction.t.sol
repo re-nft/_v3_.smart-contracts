@@ -9,8 +9,11 @@ import {
     e721_safe_transfer_from_1_selector,
     e721_safe_transfer_from_2_selector,
     e721_approve_selector,
+    e721_burn_selector,
     e1155_safe_transfer_from_selector,
     e1155_safe_batch_transfer_from_selector,
+    e1155_burn_selector,
+    e1155_burn_batch_selector,
     shared_set_approval_for_all_selector,
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
@@ -324,6 +327,14 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         _checkTransaction(address(this), address(erc721s[0]), approveCalldata);
     }
 
+    function test_Success_CheckTransaction_ERC721_Burn() public {
+        // Build up the `burn(uint256)` calldata
+        bytes memory burnCalldata = abi.encodeWithSelector(e721_burn_selector, 0);
+
+        // Check the transaction
+        _checkTransaction(address(this), address(erc721s[0]), burnCalldata);
+    }
+
     function test_Success_CheckTransaction_ERC1155_SafeTransferFrom() public {
         // Build up the `safeTransferFrom(address,address,uint256,uint256,bytes)` calldata
         bytes memory safeTransferFromCalldata = abi.encodeWithSelector(
@@ -337,6 +348,19 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
 
         // Check the transaction
         _checkTransaction(address(this), address(erc1155s[0]), safeTransferFromCalldata);
+    }
+
+    function test_Success_CheckTransaction_ERC1155_Burn() public {
+        // Build up the `burn(address,uint256,uint256)` calldata
+        bytes memory burnCalldata = abi.encodeWithSelector(
+            e1155_burn_selector,
+            address(this),
+            2,
+            1
+        );
+
+        // Check the transaction
+        _checkTransaction(address(this), address(erc1155s[0]), burnCalldata);
     }
 
     function test_Success_CheckTransaction_Gnosis_EnableModule() public {
@@ -486,6 +510,29 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         );
     }
 
+    function test_Reverts_CheckTransaction_ERC721_Burn() public {
+        // Create a rentalId array
+        RentalAssetUpdate[] memory rentalAssets = new RentalAssetUpdate[](1);
+        rentalAssets[0] = RentalAssetUpdate(
+            RentalUtils.getItemPointer(address(alice.safe), address(erc721s[0]), 2),
+            1
+        );
+
+        // Mark the rental as actively rented in storage
+        _markRentalsAsActive(rentalAssets);
+
+        // Build up the `burn(uint256)` calldata
+        bytes memory burnCalldata = abi.encodeWithSelector(e721_burn_selector, 2);
+
+        // Expect revert because of an unauthorized function selector
+        _checkTransactionRevertUnauthorizedSelector(
+            address(alice.safe),
+            address(erc721s[0]),
+            e721_burn_selector,
+            burnCalldata
+        );
+    }
+
     function test_Reverts_CheckTransaction_ERC1155_SafeTransferFrom() public {
         // Create a rentalId array
         RentalAssetUpdate[] memory rentalAssets = new RentalAssetUpdate[](1);
@@ -533,6 +580,52 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
             address(erc1155s[0]),
             e1155_safe_batch_transfer_from_selector,
             safeBatchTransferFromCalldata
+        );
+    }
+
+    function test_Reverts_CheckTransaction_ERC1155_Burn() public {
+        // Create a rentalId array
+        RentalAssetUpdate[] memory rentalAssets = new RentalAssetUpdate[](1);
+        rentalAssets[0] = RentalAssetUpdate(
+            RentalUtils.getItemPointer(address(alice.safe), address(erc1155s[0]), 2),
+            10
+        );
+
+        // Mark the rental as actively rented in storage
+        _markRentalsAsActive(rentalAssets);
+
+        // Build up the `burn(address,uint256,uint256)` calldata
+        bytes memory burnCalldata = abi.encodeWithSelector(
+            e1155_burn_selector,
+            address(this),
+            2,
+            10
+        );
+
+        // Expect revert because of an unauthorized function selector
+        _checkTransactionRevertUnauthorizedSelector(
+            address(alice.safe),
+            address(erc1155s[0]),
+            e1155_burn_selector,
+            burnCalldata
+        );
+    }
+
+    function test_Reverts_CheckTransaction_ERC1155_BurnBatch() public {
+        // Build up the `burnBatch(address,uint256[],uint256[])` calldata
+        bytes memory burnBatchCalldata = abi.encodeWithSelector(
+            e1155_burn_batch_selector,
+            address(this),
+            new uint256[](0),
+            new uint256[](0)
+        );
+
+        // Expect revert because of an unauthorized function selector
+        _checkTransactionRevertUnauthorizedSelector(
+            address(alice.safe),
+            address(erc1155s[0]),
+            e1155_burn_batch_selector,
+            burnBatchCalldata
         );
     }
 

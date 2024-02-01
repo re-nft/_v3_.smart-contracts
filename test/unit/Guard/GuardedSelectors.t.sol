@@ -3,6 +3,12 @@ pragma solidity ^0.8.20;
 
 import {IERC721} from "@openzeppelin-contracts/token/ERC721/IERC721.sol";
 import {IERC1155} from "@openzeppelin-contracts/token/ERC1155/IERC1155.sol";
+import {
+    ERC721Burnable
+} from "@openzeppelin-contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import {
+    ERC1155Burnable
+} from "@openzeppelin-contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import {GuardManager} from "@safe-contracts/base/GuardManager.sol";
 import {ModuleManager} from "@safe-contracts/base/ModuleManager.sol";
 import {FallbackManager} from "@safe-contracts/base/FallbackManager.sol";
@@ -11,9 +17,12 @@ import {
     e721_transfer_from_selector,
     e721_safe_transfer_from_1_selector,
     e721_safe_transfer_from_2_selector,
+    e721_burn_selector,
     e721_approve_selector,
     e1155_safe_transfer_from_selector,
     e1155_safe_batch_transfer_from_selector,
+    e1155_burn_selector,
+    e1155_burn_batch_selector,
     shared_set_approval_for_all_selector,
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
@@ -57,6 +66,10 @@ contract Guard_GuardedSelectors_Unit_Test is BaseTestWithoutEngine {
         );
     }
 
+    function test_Success_ERC721_Burn() public {
+        assertEq(e721_burn_selector, ERC721Burnable.burn.selector);
+    }
+
     function test_Success_ERC1155_SetApprovalForAll() public {
         assertEq(
             shared_set_approval_for_all_selector,
@@ -73,6 +86,14 @@ contract Guard_GuardedSelectors_Unit_Test is BaseTestWithoutEngine {
             e1155_safe_batch_transfer_from_selector,
             IERC1155.safeBatchTransferFrom.selector
         );
+    }
+
+    function test_Success_ERC1155_Burn() public {
+        assertEq(e1155_burn_selector, ERC1155Burnable.burn.selector);
+    }
+
+    function test_Success_ERC1155_BurnBatch() public {
+        assertEq(e1155_burn_batch_selector, ERC1155Burnable.burnBatch.selector);
     }
 
     function test_Success_GnosisSafe_EnableModule() public {

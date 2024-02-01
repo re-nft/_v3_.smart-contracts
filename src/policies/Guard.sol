@@ -15,14 +15,19 @@ import {
     e721_safe_transfer_from_1_selector,
     e721_safe_transfer_from_2_selector,
     e721_transfer_from_selector,
+    e721_burn_selector,
     e721_approve_token_id_offset,
     e721_safe_transfer_from_1_token_id_offset,
     e721_safe_transfer_from_2_token_id_offset,
     e721_transfer_from_token_id_offset,
+    e721_burn_offset,
     e1155_safe_transfer_from_selector,
     e1155_safe_batch_transfer_from_selector,
+    e1155_burn_selector,
+    e1155_burn_batch_selector,
     e1155_safe_transfer_from_token_id_offset,
     e1155_safe_batch_transfer_from_token_id_offset,
+    e1155_burn_offset,
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
     gnosis_safe_disable_module_selector,
@@ -233,11 +238,23 @@ contract Guard is Policy, BaseGuard {
 
             // Check if the selector is allowed.
             _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == e721_burn_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(_loadValueFromCalldata(data, e721_burn_offset));
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
         } else if (selector == e1155_safe_transfer_from_selector) {
             // Load the token ID from calldata.
             uint256 tokenId = uint256(
                 _loadValueFromCalldata(data, e1155_safe_transfer_from_token_id_offset)
             );
+
+            // Check if the selector is allowed.
+            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+        } else if (selector == e1155_burn_selector) {
+            // Load the token ID from calldata.
+            uint256 tokenId = uint256(_loadValueFromCalldata(data, e1155_burn_offset));
 
             // Check if the selector is allowed.
             _revertSelectorOnActiveRental(selector, from, to, tokenId);
@@ -282,6 +299,11 @@ contract Guard is Policy, BaseGuard {
                 revert Errors.GuardPolicy_UnauthorizedSelector(
                     e1155_safe_batch_transfer_from_selector
                 );
+            }
+
+            // Revert if the `batchBurn` selector is specified.
+            if (selector == e1155_burn_batch_selector) {
+                revert Errors.GuardPolicy_UnauthorizedSelector(e1155_burn_batch_selector);
             }
 
             // Revert if the `setGuard` selector is specified.
