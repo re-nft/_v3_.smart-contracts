@@ -46,6 +46,10 @@ contract Hook_ERC1155RewardHook_Test is BaseTest {
         vm.prank(deployer.addr);
         guard.updateHookStatus(address(hook), uint8(6));
 
+        // admin whitelists the game token for rental
+        vm.prank(deployer.addr);
+        admin.toggleWhitelistAsset(address(gameToken), true);
+
         // fund the hook contract with some reward tokens using token ID 0
         rewardToken.mint(address(hook), 100e18);
 

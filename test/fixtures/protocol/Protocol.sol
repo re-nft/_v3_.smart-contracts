@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Vm} from "@forge-std/Vm.sol";
 
-import {BaseExternal} from "@test/fixtures/external/BaseExternal.sol";
+import {TokenCreator} from "@test/fixtures/protocol/TokenCreator.sol";
 
 import {Create2Deployer} from "@src/Create2Deployer.sol";
 import {Kernel, Actions} from "@src/Kernel.sol";
@@ -18,7 +18,7 @@ import {toRole} from "@src/libraries/KernelUtils.sol";
 import {Proxy} from "@src/proxy/Proxy.sol";
 
 // Deploys all V3 protocol contracts
-contract Protocol is BaseExternal {
+contract Protocol is TokenCreator {
     // Kernel
     Kernel public kernel;
 
@@ -244,8 +244,31 @@ contract Protocol is BaseExternal {
         // Grant `stop_admin` role to the address which can skim funds from the payment escrow
         kernel.grantRole(toRole("STOP_ADMIN"), deployer.addr);
 
+        // Stop impersonating the deployer
+        vm.stopPrank();
+    }
+
+    function _performAdminDuties() public {
+        // Start impersonating the deployer
+        vm.startPrank(deployer.addr);
+
         // Set the maximum rent duration to 21 days
         admin.setMaxRentDuration(21 days);
+
+        // Enable all mock ERC20 tokens for payment
+        for (uint256 i = 0; i < erc20s.length; ++i) {
+            admin.toggleWhitelistPayment(address(erc20s[i]), true);
+        }
+
+        // Enable all mock ERC721 tokens for rental
+        for (uint256 i = 0; i < erc721s.length; ++i) {
+            admin.toggleWhitelistAsset(address(erc721s[i]), true);
+        }
+
+        // Enable all mock ERC1155 tokens for rental
+        for (uint256 i = 0; i < erc1155s.length; ++i) {
+            admin.toggleWhitelistAsset(address(erc1155s[i]), true);
+        }
 
         // Stop impersonating the deployer
         vm.stopPrank();
@@ -291,5 +314,8 @@ contract Protocol is BaseExternal {
 
         // intialize the kernel
         _setupKernel();
+
+        // perform admin duties
+        _performAdminDuties();
     }
 }

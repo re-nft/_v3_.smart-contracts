@@ -59,6 +59,12 @@ contract StorageBase {
 
     // Allows for the safe registration of extensions that can be enabled on a safe.
     mapping(address extension => bool isWhitelisted) public whitelistedExtensions;
+
+    // Allows the use of these whitelisted tokens as rentable assets.
+    mapping(address asset => bool isWhitelisted) public whitelistedAssets;
+
+    // Allows the use of these whitelisted tokens as payments for rentals.
+    mapping(address payment => bool isWhitelisted) public whitelistedPayments;
 }
 
 /**
@@ -347,13 +353,39 @@ contract Storage is Proxiable, Module, StorageBase {
      * @notice Toggles whether an extension is whitelisted.
      *
      * @param extension Gnosis safe module which can be added to a rental safe.
-     * @param isEnabled Boolean indicatingwhether the module is enabled.
+     * @param isEnabled Boolean indicating whether the module is enabled.
      */
     function toggleWhitelistExtension(
         address extension,
         bool isEnabled
     ) external onlyByProxy permissioned {
         whitelistedExtensions[extension] = isEnabled;
+    }
+
+    /**
+     * @notice Toggles whether a token can be rented.
+     *
+     * @param asset     Token address which can be rented via the protocol.
+     * @param isEnabled Boolean indicating whether the token is whitelisted.
+     */
+    function toggleWhitelistAsset(
+        address asset,
+        bool isEnabled
+    ) external onlyByProxy permissioned {
+        whitelistedAssets[asset] = isEnabled;
+    }
+
+    /**
+     * @notice Toggles whether a token can be used as a payment.
+     *
+     * @param payment   Token address which can be used as payment via the protocol.
+     * @param isEnabled Boolean indicating whether the token is whitelisted.
+     */
+    function toggleWhitelistPayment(
+        address payment,
+        bool isEnabled
+    ) external onlyByProxy permissioned {
+        whitelistedPayments[payment] = isEnabled;
     }
 
     /**

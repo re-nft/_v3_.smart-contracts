@@ -44,9 +44,11 @@ contract CreateHarness is Create {
     }
 
     function processPayeeOrderConsideration(
-        ReceivedItem[] memory consideration
+        Item[] memory rentalItems,
+        ReceivedItem[] memory consideration,
+        uint256 startIndex
     ) external pure {
-        _processPayeeOrderConsideration(consideration);
+        _processPayeeOrderConsideration(rentalItems, consideration, startIndex);
     }
 
     function convertToItems(
