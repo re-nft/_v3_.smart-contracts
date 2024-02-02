@@ -226,11 +226,6 @@ library Errors {
      */
     error GuardPolicy_UnauthorizedDelegateCall(address to);
 
-    /**
-     * @dev Thrown when a function selector is not provided.
-     */
-    error GuardPolicy_FunctionSelectorRequired();
-
     /////////////////////////////////////////////////////////////////////////////////
     //                             Payment Escrow Module                           //
     /////////////////////////////////////////////////////////////////////////////////
