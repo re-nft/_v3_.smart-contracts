@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.20;
 
+import {IERC1155} from "@openzeppelin-contracts/interfaces/IERC1155.sol";
 import {BaseGuard} from "@safe-contracts/base/GuardManager.sol";
 import {Enum} from "@safe-contracts/common/Enum.sol";
 import {LibString} from "@solady/utils/LibString.sol";
@@ -26,8 +27,8 @@ import {
     e1155_burn_selector,
     e1155_burn_batch_selector,
     e1155_safe_transfer_from_token_id_offset,
-    e1155_safe_batch_transfer_from_token_id_offset,
     e1155_burn_offset,
+    e1155_burn_amount_offset,
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
     gnosis_safe_disable_module_selector,
@@ -36,6 +37,8 @@ import {
     gnosis_safe_disable_module_offset
 } from "@src/libraries/RentalConstants.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {RentalUtils} from "@src/libraries/RentalUtils.sol";
+import {RentalId} from "@src/libraries/RentalStructs.sol";
 
 /**
  * @title Guard
@@ -136,8 +139,48 @@ contract Guard is Policy, BaseGuard {
         uint256 tokenId
     ) private view {
         // Check if the selector is allowed.
-        if (STORE.isRentedOut(safe, token, tokenId)) {
+        if (STORE.isRentedOut(safe, token, tokenId) > 0) {
             revert Errors.GuardPolicy_UnauthorizedSelector(selector);
+        }
+    }
+
+    /**
+     * @dev Reverts if the amount of tokens leaving the safe would drop the
+     *      current balance of the safe below the actively rented amount.
+     *
+     * @param selector       Function selector which is restricted.
+     * @param safe           Address of the safe that originated the call.
+     * @param token          Address of the token which is actively rented.
+     * @param tokenId        ID of the token which is actively rented.
+     * @param amountToRemove Amount of tokens that will leave the safe.
+     */
+    function _revertSelectorOnValueOverflow(
+        bytes4 selector,
+        address safe,
+        address token,
+        uint256 tokenId,
+        uint256 amountToRemove
+    ) private view {
+        // Get the total amount of currently rented assets.
+        uint256 rentedAmount = STORE.isRentedOut(safe, token, tokenId);
+
+        // Token is not actively rented, so calculating whether the amount
+        // to remove is greater than the rented amount does not matter.
+        if (rentedAmount == 0) return;
+
+        // Amount of tokens that are currently in the safe.
+        uint256 safeBalance = IERC1155(token).balanceOf(safe, tokenId);
+
+        // Amount that will be remaining in the safe.
+        uint256 remainingBalance = safeBalance - amountToRemove;
+
+        // Check if the selector is allowed for the value provided.
+        if (rentedAmount > remainingBalance) {
+            revert Errors.GuardPolicy_UnauthorizedAssetAmount(
+                selector,
+                rentedAmount,
+                remainingBalance
+            );
         }
     }
 
@@ -256,8 +299,13 @@ contract Guard is Policy, BaseGuard {
             // Load the token ID from calldata.
             uint256 tokenId = uint256(_loadValueFromCalldata(data, e1155_burn_offset));
 
-            // Check if the selector is allowed.
-            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+            // Load the token amoutn from calldata
+            uint256 amountToRemove = uint256(
+                _loadValueFromCalldata(data, e1155_burn_amount_offset)
+            );
+
+            // Check if the amount leaving the safe is allowed.
+            _revertSelectorOnValueOverflow(selector, from, to, tokenId, amountToRemove);
         } else if (selector == gnosis_safe_enable_module_selector) {
             // Load the extension address from calldata.
             address extension = address(

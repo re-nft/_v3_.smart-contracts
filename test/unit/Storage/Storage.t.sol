@@ -53,7 +53,7 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         assertEq(STORE.rentedAssets(rentalAssets[0].rentalId), rentalAssets[0].amount);
 
         // assert that the item is rented out
-        assertTrue(STORE.isRentedOut(address(alice.safe), address(erc721s[0]), 0));
+        assertGt(STORE.isRentedOut(address(alice.safe), address(erc721s[0]), 0), 0);
     }
 
     function test_Reverts_AddRentals_NotAdmin() public {
@@ -113,7 +113,7 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         assertEq(STORE.rentedAssets(rentalAssets[0].rentalId), 0);
 
         // assert that the item is not rented out
-        assertFalse(STORE.isRentedOut(address(alice.safe), address(erc721s[0]), 0));
+        assertEq(STORE.isRentedOut(address(alice.safe), address(erc721s[0]), 0), 0);
     }
 
     function test_Reverts_RemoveRentals_NoPermissions() public {
@@ -232,7 +232,7 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
 
         // assert that the item is not rented out
         for (uint256 i = 0; i < 2; i++) {
-            assertFalse(STORE.isRentedOut(address(alice.safe), address(erc721s[0]), i));
+            assertEq(STORE.isRentedOut(address(alice.safe), address(erc721s[0]), i), 0);
         }
     }
 

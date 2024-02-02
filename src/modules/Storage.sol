@@ -117,17 +117,19 @@ contract Storage is Proxiable, Module, StorageBase {
      * @param recipient  Address of the wallet which rents the asset.
      * @param token      Address of the token.
      * @param identifier ID of the token.
+     *
+     * @return Amount of actively rented tokens for the asset.
      */
     function isRentedOut(
         address recipient,
         address token,
         uint256 identifier
-    ) external view returns (bool) {
+    ) external view returns (uint256) {
         // calculate the rental ID
         RentalId rentalId = RentalUtils.getItemPointer(recipient, token, identifier);
 
         // Determine if there is a positive amount
-        return rentedAssets[rentalId] != 0;
+        return rentedAssets[rentalId];
     }
 
     /**
@@ -376,7 +378,7 @@ contract Storage is Proxiable, Module, StorageBase {
 
     /**
      * @notice Sets the maximum rent duration.
-     * 
+     *
      * @param newDuration The new maximum rent duration.
      */
     function setMaxRentDuration(uint256 newDuration) external onlyByProxy permissioned {
