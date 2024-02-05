@@ -7,6 +7,7 @@ import {
     ItemType as SeaportItemType
 } from "@seaport-types/lib/ConsiderationStructs.sol";
 import {OfferItemLib} from "@seaport-sol/SeaportSol.sol";
+import {ERC1155} from "@openzeppelin-contracts/token/ERC1155/ERC1155.sol";
 import {
     ERC1155Burnable
 } from "@openzeppelin-contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
@@ -311,5 +312,261 @@ contract GuardedTransactions_ERC1155_Integration_Test is BaseTest {
 
         // assert that the token still exists in the safe
         assertEq(erc1155s[0].balanceOf(address(alice.safe), 5), 10);
+    }
+
+    function test_Success_ERC1155_SafeTransferFrom_NotRented() public {
+        // mint token to the rental wallet
+        erc1155s[0].mint(address(alice.safe), 5, 10);
+
+        // assert that the token exists in the safe
+        assertEq(erc1155s[0].balanceOf(address(alice.safe), 5), 10);
+
+        // create the `safeTransferFrom(address,address,uint256,uint256,bytes)` calldata
+        bytes memory safeTransferFromCalldata = abi.encodeWithSelector(
+            ERC1155.safeTransferFrom.selector,
+            address(alice.safe),
+            bob.addr,
+            5,
+            10,
+            ""
+        );
+
+        // Sign the calldata
+        bytes memory signature = SafeUtils.signTransaction({
+            safe: address(alice.safe),
+            ownerPrivateKey: alice.privateKey,
+            to: address(erc1155s[0]),
+            transaction: safeTransferFromCalldata
+        });
+
+        // Expect the transaction to execute successfully
+        SafeUtils.executeTransaction({
+            safe: address(alice.safe),
+            to: address(erc1155s[0]),
+            transaction: safeTransferFromCalldata,
+            signature: signature
+        });
+
+        // assert the tokens were transferred to bob
+        assertEq(erc1155s[0].balanceOf(address(alice.safe), 5), 0);
+        assertEq(erc1155s[0].balanceOf(address(bob.addr), 5), 10);
+    }
+
+    function test_Success_ERC1155_SafeTransferFrom_Rented() public {
+        // mint token to the lender
+        erc1155s[0].mint(address(alice.addr), 5, 10);
+
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 0,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // add custom offer item
+        withOfferItem(
+            OfferItemLib
+                .empty()
+                .withItemType(SeaportItemType.ERC1155)
+                .withToken(address(erc1155s[0]))
+                .withIdentifierOrCriteria(5)
+                .withStartAmount(10)
+                .withEndAmount(10)
+        );
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // finalize the base order fulfillment
+        finalizeBaseOrderFulfillment();
+
+        // assert that the token exists in the safe
+        assertEq(erc1155s[0].balanceOf(address(bob.safe), 5), 10);
+
+        // create the `safeTransferFrom(address,address,uint256,uint256,bytes)` calldata
+        bytes memory safeTransferFromCalldata = abi.encodeWithSelector(
+            ERC1155.safeTransferFrom.selector,
+            address(bob.safe),
+            alice.addr,
+            5,
+            10,
+            ""
+        );
+
+        // Sign the calldata
+        bytes memory signature = SafeUtils.signTransaction({
+            safe: address(bob.safe),
+            ownerPrivateKey: bob.privateKey,
+            to: address(erc1155s[0]),
+            transaction: safeTransferFromCalldata
+        });
+
+        // Expect the transaction to revert
+        SafeUtils.executeTransactionWithError({
+            safe: address(bob.safe),
+            to: address(erc1155s[0]),
+            transaction: safeTransferFromCalldata,
+            signature: signature,
+            expectedError: abi.encodeWithSelector(
+                Errors.GuardPolicy_UnauthorizedAssetAmount.selector,
+                ERC1155.safeTransferFrom.selector,
+                10,
+                0
+            )
+        });
+
+        // assert that the token still exists in the safe
+        assertEq(erc1155s[0].balanceOf(address(bob.safe), 5), 10);
+        assertEq(erc1155s[0].balanceOf(address(alice.addr), 5), 0);
+    }
+
+    function test_Fuzz_ERC1155_SafeTransferFrom_PartiallyRented(
+        uint256 amountToRent,
+        uint256 nonRentedAmount,
+        uint256 amountToTransfer
+    ) public {
+        // assume a rental of a positive amount
+        vm.assume(amountToRent > 0);
+
+        // assume the amount of tokens is less than 1 trillion with 18 decimal places
+        vm.assume(
+            amountToRent < 1e30 && nonRentedAmount < 1e30 && amountToTransfer < 1e30
+        );
+
+        // assume there are enough tokens to transfer
+        vm.assume(amountToRent + nonRentedAmount >= amountToTransfer);
+
+        // mint token to the lender
+        erc1155s[0].mint(address(alice.addr), 5, amountToRent);
+
+        // mint token directly to the rental safe
+        erc1155s[0].mint(address(bob.safe), 5, nonRentedAmount);
+
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 0,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // add custom offer item
+        withOfferItem(
+            OfferItemLib
+                .empty()
+                .withItemType(SeaportItemType.ERC1155)
+                .withToken(address(erc1155s[0]))
+                .withIdentifierOrCriteria(5)
+                .withStartAmount(amountToRent)
+                .withEndAmount(amountToRent)
+        );
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // finalize the base order fulfillment
+        finalizeBaseOrderFulfillment();
+
+        // assert that the token exists in the safe
+        assertEq(
+            erc1155s[0].balanceOf(address(bob.safe), 5),
+            amountToRent + nonRentedAmount
+        );
+
+        // create the `safeTransferFrom(address,address,uint256,uint256,bytes)` calldata
+        bytes memory safeTransferFromCalldata = abi.encodeWithSelector(
+            ERC1155.safeTransferFrom.selector,
+            address(bob.safe),
+            alice.addr,
+            5,
+            amountToTransfer,
+            ""
+        );
+
+        // Sign the calldata
+        bytes memory signature = SafeUtils.signTransaction({
+            safe: address(bob.safe),
+            ownerPrivateKey: bob.privateKey,
+            to: address(erc1155s[0]),
+            transaction: safeTransferFromCalldata
+        });
+
+        // Amount remaining after the transfer
+        uint256 remainingBalance = amountToRent + nonRentedAmount - amountToTransfer;
+
+        // If the amount that isn't rented is greater than the amount being
+        // transferred, then the transaction should pass.
+        if (nonRentedAmount >= amountToTransfer) {
+            // Expect the transaction to execute successfully
+            SafeUtils.executeTransaction({
+                safe: address(bob.safe),
+                to: address(erc1155s[0]),
+                transaction: safeTransferFromCalldata,
+                signature: signature
+            });
+
+            // assert that the remaining token amount exists in the safe after transfer
+            assertEq(erc1155s[0].balanceOf(address(bob.safe), 5), remainingBalance);
+
+            // assert alice received the correct amount of tokens
+            assertEq(erc1155s[0].balanceOf(alice.addr, 5), amountToTransfer);
+        }
+        // Otherwise, we're attempting to burn tokens that have been rented.
+        else {
+            // Expect the transaction to revert
+            SafeUtils.executeTransactionWithError({
+                safe: address(bob.safe),
+                to: address(erc1155s[0]),
+                transaction: safeTransferFromCalldata,
+                signature: signature,
+                expectedError: abi.encodeWithSelector(
+                    Errors.GuardPolicy_UnauthorizedAssetAmount.selector,
+                    ERC1155.safeTransferFrom.selector,
+                    amountToRent,
+                    remainingBalance
+                )
+            });
+
+            // assert that the original token amount before burning still
+            // exists in the safe
+            assertEq(
+                erc1155s[0].balanceOf(address(bob.safe), 5),
+                amountToRent + nonRentedAmount
+            );
+            assertEq(erc1155s[0].balanceOf(alice.addr, 5), 0);
+        }
     }
 }

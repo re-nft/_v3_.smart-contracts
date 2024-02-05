@@ -314,21 +314,6 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         _checkTransaction(address(this), address(erc721s[0]), approveCalldata);
     }
 
-    function test_Success_CheckTransaction_ERC1155_SafeTransferFrom() public {
-        // Build up the `safeTransferFrom(address,address,uint256,uint256,bytes)` calldata
-        bytes memory safeTransferFromCalldata = abi.encodeWithSelector(
-            e1155_safe_transfer_from_selector,
-            alice.addr,
-            bob.addr,
-            0,
-            1,
-            ""
-        );
-
-        // Check the transaction
-        _checkTransaction(address(this), address(erc1155s[0]), safeTransferFromCalldata);
-    }
-
     function test_Success_CheckTransaction_Gnosis_EnableModule() public {
         // impersonate the admin policy admin
         vm.prank(deployer.addr);
@@ -473,36 +458,6 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
             address(erc721s[0]),
             e721_approve_selector,
             approveCalldata
-        );
-    }
-
-    function test_Reverts_CheckTransaction_ERC1155_SafeTransferFrom() public {
-        // Create a rentalId array
-        RentalAssetUpdate[] memory rentalAssets = new RentalAssetUpdate[](1);
-        rentalAssets[0] = RentalAssetUpdate(
-            RentalUtils.getItemPointer(address(alice.safe), address(erc1155s[0]), 0),
-            10
-        );
-
-        // Mark the rental as actively rented in storage
-        _markRentalsAsActive(rentalAssets);
-
-        // Build up the `safeTransferFrom(address,address,uint256,uint256,bytes)` calldata
-        bytes memory safeTransferFromCalldata = abi.encodeWithSelector(
-            e1155_safe_transfer_from_selector,
-            address(alice.safe),
-            bob.addr,
-            0,
-            10,
-            ""
-        );
-
-        // Expect revert because of an unauthorized function selector
-        _checkTransactionRevertUnauthorizedSelector(
-            address(alice.safe),
-            address(erc1155s[0]),
-            e1155_safe_transfer_from_selector,
-            safeTransferFromCalldata
         );
     }
 
