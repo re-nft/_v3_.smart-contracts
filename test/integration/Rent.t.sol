@@ -3,10 +3,13 @@ pragma solidity ^0.8.20;
 
 import {
     Order,
+    OfferItem,
+    ConsiderationItem,
     FulfillmentComponent,
     Fulfillment,
     ItemType as SeaportItemType
 } from "@seaport-types/lib/ConsiderationStructs.sol";
+import {OfferItemLib, ConsiderationItemLib} from "@seaport-sol/SeaportSol.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {
@@ -18,8 +21,13 @@ import {
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {ProtocolAccount} from "@test/utils/Types.sol";
+import {MockERC721} from "@test/mocks/tokens/standard/MockERC721.sol";
+import {MockERC20} from "@test/mocks/tokens/standard/MockERC20.sol";
 
 contract TestRent is BaseTest {
+    using OfferItemLib for OfferItem;
+    using ConsiderationItemLib for ConsiderationItem;
+
     function test_Success_Rent_BaseOrder_ERC721() public {
         // create a BASE order
         createOrder({
@@ -116,6 +124,123 @@ contract TestRent is BaseTest {
             abi.encodeWithSelector(
                 Errors.CreatePolicy_RentDurationTooLong.selector,
                 30 days
+            )
+        );
+    }
+
+    function test_Reverts_Rent_BaseOrder_NonWhitelistedAsset() public {
+        // Deploy mock token
+        MockERC721 testToken = new MockERC721();
+
+        // mint the token to alice
+        testToken.mint(alice.addr);
+
+        // approve the conduit to pull the token
+        vm.prank(alice.addr);
+        testToken.setApprovalForAll(address(conduit), true);
+
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 0,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // add custom offer item
+        withOfferItem(
+            OfferItemLib
+                .empty()
+                .withItemType(SeaportItemType.ERC721)
+                .withToken(address(testToken))
+                .withIdentifierOrCriteria(0)
+                .withStartAmount(1)
+                .withEndAmount(1)
+        );
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // Expect revert because the rented asset is not whitelisted
+        finalizeBaseOrderFulfillmentWithError(
+            abi.encodeWithSelector(
+                Errors.CreatePolicy_AssetNotWhitelisted.selector,
+                address(testToken)
+            )
+        );
+    }
+
+    function test_Reverts_Rent_BaseOrder_NonWhitelistedPayment() public {
+        // Deploy mock token
+        MockERC20 testToken = new MockERC20();
+
+        // mint the token to bob
+        testToken.mint(bob.addr, 100);
+
+        // approve the conduit to pull the token
+        vm.prank(bob.addr);
+        testToken.approve(address(conduit), 100);
+
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 1,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 0
+        });
+
+        // add custom consideration item
+        withConsiderationItem(
+            ConsiderationItemLib
+                .empty()
+                .withItemType(SeaportItemType.ERC20)
+                .withToken(address(testToken))
+                .withIdentifierOrCriteria(0)
+                .withStartAmount(100)
+                .withEndAmount(100)
+                .withRecipient(address(ESCRW))
+        );
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // Expect revert because the payment used to fulfill the order is not whitelisted
+        finalizeBaseOrderFulfillmentWithError(
+            abi.encodeWithSelector(
+                Errors.CreatePolicy_PaymentNotWhitelisted.selector,
+                address(testToken)
             )
         );
     }
