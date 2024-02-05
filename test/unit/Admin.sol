@@ -12,8 +12,9 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
     // test addresses
     address constant DELEGATE = TEST_ADDR_1;
     address constant EXTENSION = TEST_ADDR_2;
+    address constant TOKEN = TEST_ADDR_3;
 
-    function test_ToggleWhitelistDelegate() public {
+    function test_Success_ToggleWhitelistDelegate() public {
         // impersonate the admin admin
         vm.prank(deployer.addr);
 
@@ -24,7 +25,7 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         assertTrue(STORE.whitelistedDelegates(DELEGATE));
     }
 
-    function test_ToggleWhitelistExtension() public {
+    function test_Success_ToggleWhitelistExtension() public {
         // impersonate the admin admin
         vm.prank(deployer.addr);
 
@@ -44,6 +45,50 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
             abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
         );
         admin.toggleWhitelistDelegate(DELEGATE, true);
+    }
+
+    function test_Success_ToggleWhitelistAsset() public {
+        // impersonate the admin admin
+        vm.prank(deployer.addr);
+
+        // enable this address to be added as a module by rental safes
+        admin.toggleWhitelistAsset(TOKEN, true);
+
+        // assert the address is whitelisted
+        assertTrue(STORE.whitelistedAssets(TOKEN));
+    }
+
+    function test_Reverts_ToggleWhitelistAsset_NotAdmin() public {
+        // impersonate a non-admin
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.toggleWhitelistAsset(TOKEN, true);
+    }
+
+    function test_Success_ToggleWhitelistPayment() public {
+        // impersonate the admin admin
+        vm.prank(deployer.addr);
+
+        // enable this address to be added as a module by rental safes
+        admin.toggleWhitelistPayment(TOKEN, true);
+
+        // assert the address is whitelisted
+        assertTrue(STORE.whitelistedPayments(TOKEN));
+    }
+
+    function test_Reverts_ToggleWhitelistPayment_NotAdmin() public {
+        // impersonate a non-admin
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.toggleWhitelistPayment(TOKEN, true);
     }
 
     function test_Reverts_ToggleWhitelistExtension_NotAdmin() public {
