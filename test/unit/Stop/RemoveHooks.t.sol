@@ -87,13 +87,16 @@ contract Stop_RemoveHooks_Unit_Test is BaseTestWithoutEngine {
 
         // unlink the offer items from the hook
         stopHarness.removeHooks(hooks, rentalItems, address(alice.safe));
+
+        // assert that the hook was called
+        assertEq(mockHook.entryRemoved(), true);
     }
 
-    function test_Reverts_RemoveHooks_DisabledHook() public {
+    function test_Success_RemoveHooks_Skipped() public {
         // impersonate an address with permissions
         vm.prank(deployer.addr);
 
-        // update the hook path but dont enable it
+        // update the hook path but dont enable it for onStop
         guard.updateHookPath(address(mockTarget), address(mockHook));
 
         // create the rental items
@@ -110,11 +113,11 @@ contract Stop_RemoveHooks_Unit_Test is BaseTestWithoutEngine {
         Hook[] memory hooks = new Hook[](1);
         hooks[0] = Hook({target: address(mockHook), itemIndex: 0, extraData: bytes("")});
 
-        // Expect revert because the hook wasnt yet enabled
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.Shared_DisabledHook.selector, address(mockHook))
-        );
+        // Expect the call to succeed since the hook call is skipped
         stopHarness.removeHooks(hooks, rentalItems, address(alice.safe));
+
+        // assert that the hook was not called
+        assertEq(mockHook.entryRemoved(), false);
     }
 
     function test_Reverts_RemoveHooks_NonRentalHookItem() public {
