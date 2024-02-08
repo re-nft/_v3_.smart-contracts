@@ -151,8 +151,17 @@ library Errors {
 
     /**
      * @dev Thrown when an unauthorized address signs a create policy payloads.
+     *
+     * @param signer Address that signed the rent payload.
      */
-    error CreatePolicy_UnauthorizedCreatePolicySigner();
+    error CreatePolicy_UnauthorizedCreatePolicySigner(address signer);
+
+    /**
+     * @dev Thrown when a signed rent payload is used more than once.
+     *
+     * @param rentPayloadHash Hash of the rent payload struct.
+     */
+    error CreatePolicy_ConsumedRentPayload(bytes32 rentPayloadHash);
 
     /**
      * @dev Thrown when creating a rental with an asset that does not exist

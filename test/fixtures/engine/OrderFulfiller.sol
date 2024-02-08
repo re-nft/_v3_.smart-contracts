@@ -52,6 +52,8 @@ contract OrderFulfiller is OrderCreator {
         AdvancedOrder advancedOrder;
     }
 
+    uint256 rentPayloadNonce;
+
     // components of a fulfillment
     ProtocolAccount fulfiller;
     OrderToFulfill[] ordersToFulfill;
@@ -90,8 +92,18 @@ contract OrderFulfiller is OrderCreator {
         // create rental zone payload data
         _createRentalPayload(
             orderToFulfill.payload,
-            RentPayload(fulfillment, metadata, block.timestamp + 100, _fulfiller.addr)
+            RentPayload(
+                orderHash,
+                rentPayloadNonce,
+                fulfillment,
+                metadata,
+                block.timestamp + 100,
+                _fulfiller.addr
+            )
         );
+
+        // increment the rent payload nonce
+        rentPayloadNonce++;
 
         // generate the signature for the payload
         bytes memory signature = _signProtocolOrder(
@@ -150,16 +162,14 @@ contract OrderFulfiller is OrderCreator {
         RentPayload storage storagePayload,
         RentPayload memory payload
     ) private {
-        // set payload fulfillment on the order to fulfill
+        // set payload struct fields
         _createOrderFulfillment(storagePayload.fulfillment, payload.fulfillment);
-
-        // set payload metadata on the order to fulfill
         _createOrderMetadata(storagePayload.metadata, payload.metadata);
 
-        // set payload expiration on the order to fulfill
+        // create the rest of the single slot parameters on the rental payload
+        storagePayload.orderHash = payload.orderHash;
+        storagePayload.nonce = payload.nonce;
         storagePayload.expiration = payload.expiration;
-
-        // set payload intended fulfiller on the order to fulfill
         storagePayload.intendedFulfiller = payload.intendedFulfiller;
     }
 

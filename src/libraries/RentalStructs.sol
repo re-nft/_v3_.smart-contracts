@@ -152,6 +152,8 @@ struct RentalOrder {
  *      the hash stored in the signed seaport order to make sure the data matches.
  */
 struct RentPayload {
+    bytes32 orderHash;
+    uint256 nonce;
     OrderFulfillment fulfillment;
     OrderMetadata metadata;
     uint256 expiration;

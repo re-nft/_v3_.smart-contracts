@@ -100,9 +100,11 @@ contract Create is Policy, Signer, Zone, Accumulator {
         onlyKernel
         returns (Permissions[] memory requests)
     {
-        requests = new Permissions[](2);
+        requests = new Permissions[](3);
         requests[0] = Permissions(toKeycode("STORE"), STORE.addRentals.selector);
-        requests[1] = Permissions(toKeycode("ESCRW"), ESCRW.increaseDeposit.selector);
+        requests[1] = Permissions(toKeycode("STORE"), STORE.consumePayload.selector);
+
+        requests[2] = Permissions(toKeycode("ESCRW"), ESCRW.increaseDeposit.selector);
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -816,22 +818,30 @@ contract Create is Policy, Signer, Zone, Accumulator {
             offerer: zoneParams.offerer
         });
 
+        // Generate the rent payload hash.
+        bytes32 rentPayloadHash = _deriveRentPayloadHash(payload);
+
+        // Recover the signer from the payload.
+        address signer = _recoverSignerFromPayload(rentPayloadHash, signature);
+
         // Check: The signature from the protocol signer has not expired.
         _validateProtocolSignatureExpiration(payload.expiration);
 
         // Check: The fulfiller is the intended fulfiller.
         _validateFulfiller(payload.intendedFulfiller, seaportPayload.fulfiller);
 
-        // Recover the signer from the payload.
-        address signer = _recoverSignerFromPayload(
-            _deriveRentPayloadHash(payload),
-            signature
-        );
-
         // Check: The data matches the signature and that the protocol signer is the one that signed.
         if (!kernel.hasRole(signer, toRole("CREATE_SIGNER"))) {
-            revert Errors.CreatePolicy_UnauthorizedCreatePolicySigner();
+            revert Errors.CreatePolicy_UnauthorizedCreatePolicySigner(signer);
         }
+
+        // Check: Make sure this payload hash has not been used before.
+        if (STORE.consumedPayloads(rentPayloadHash)) {
+            revert Errors.CreatePolicy_ConsumedRentPayload(rentPayloadHash);
+        }
+
+        // Effect: Consume the rent payload so that it cannot be used again.
+        STORE.consumePayload(rentPayloadHash);
 
         // Initiate the rental using the rental manager.
         _rentFromZone(payload, seaportPayload);
