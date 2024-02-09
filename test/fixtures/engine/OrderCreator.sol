@@ -66,7 +66,6 @@ contract OrderCreator is BaseProtocol {
         // use with the Create Policy and the protocol conduit contract
         OrderComponentsLib
             .empty()
-            .withOrderType(SeaportOrderType.FULL_RESTRICTED)
             .withZone(address(create))
             .withStartTime(block.timestamp)
             .withEndTime(block.timestamp + 100)
@@ -269,16 +268,21 @@ contract OrderCreator is BaseProtocol {
         ProtocolAccount memory _offerer,
         OfferItem[] memory _offerItems,
         ConsiderationItem[] memory _considerationItems,
-        OrderMetadata memory _metadata
+        OrderMetadata memory _metadata,
+        SeaportOrderType orderType
     ) private view returns (Order memory order, bytes32 orderHash) {
+        // put offerer address on stack
+        address offerer = _offerer.addr;
+
         // Build the order components
         OrderComponents memory orderComponents = OrderComponentsLib
             .fromDefault(STANDARD_ORDER_COMPONENTS)
-            .withOfferer(_offerer.addr)
+            .withOrderType(orderType)
+            .withOfferer(offerer)
             .withOffer(_offerItems)
             .withConsideration(_considerationItems)
             .withZoneHash(create.getOrderMetadataHash(_metadata))
-            .withCounter(seaport.getCounter(_offerer.addr));
+            .withCounter(seaport.getCounter(offerer));
 
         // generate the order hash
         orderHash = seaport.getOrderHash(orderComponents);
@@ -406,16 +410,16 @@ contract OrderCreator is BaseProtocol {
     //                              Order Finalization                             //
     /////////////////////////////////////////////////////////////////////////////////
 
-    function finalizeOrder()
-        internal
-        returns (Order memory, bytes32, OrderMetadata memory)
-    {
+    function _finalizeOrder(
+        SeaportOrderType orderType
+    ) private returns (Order memory, bytes32, OrderMetadata memory) {
         // create and sign the order
         (Order memory order, bytes32 orderHash) = _createSignedOrder(
             orderToCreate.offerer,
             orderToCreate.offerItems,
             orderToCreate.considerationItems,
-            orderToCreate.metadata
+            orderToCreate.metadata,
+            orderType
         );
 
         // pull order metadata into memory
@@ -425,5 +429,19 @@ contract OrderCreator is BaseProtocol {
         resetOrderToCreate();
 
         return (order, orderHash, metadata);
+    }
+
+    function finalizePartialOrder()
+        internal
+        returns (Order memory, bytes32, OrderMetadata memory)
+    {
+        return _finalizeOrder(SeaportOrderType.PARTIAL_RESTRICTED);
+    }
+
+    function finalizeOrder()
+        internal
+        returns (Order memory, bytes32, OrderMetadata memory)
+    {
+        return _finalizeOrder(SeaportOrderType.FULL_RESTRICTED);
     }
 }

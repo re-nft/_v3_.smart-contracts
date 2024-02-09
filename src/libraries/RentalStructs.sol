@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {ReceivedItem, SpentItem} from "@seaport-types/lib/ConsiderationStructs.sol";
+import {
+    ReceivedItem,
+    SpentItem,
+    OrderType as SeaportOrderType
+} from "@seaport-types/lib/ConsiderationStructs.sol";
 
 /////////////////////////////////////////////////////////////////////////////////
 //                           Order Creation Structs                            //
@@ -153,7 +157,6 @@ struct RentalOrder {
  */
 struct RentPayload {
     bytes32 orderHash;
-    uint256 nonce;
     OrderFulfillment fulfillment;
     OrderMetadata metadata;
     uint256 expiration;
@@ -172,6 +175,7 @@ struct SeaportPayload {
     ReceivedItem[] totalExecutions;
     address fulfiller;
     address offerer;
+    SeaportOrderType orderType;
 }
 
 /////////////////////////////////////////////////////////////////////////////////

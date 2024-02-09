@@ -262,7 +262,6 @@ abstract contract Signer {
                 abi.encode(
                     _RENT_PAYLOAD_TYPEHASH,
                     payload.orderHash,
-                    payload.nonce,
                     _deriveOrderFulfillmentHash(payload.fulfillment),
                     _deriveOrderMetadataHash(payload.metadata),
                     payload.expiration,
@@ -397,7 +396,7 @@ abstract contract Signer {
 
             // Construct the RentPayload type string.
             bytes memory rentPayloadTypeString = abi.encodePacked(
-                "RentPayload(bytes32 orderHash,uint256 nonce,OrderFulfillment fulfillment,OrderMetadata metadata,uint256 expiration,address intendedFulfiller)"
+                "RentPayload(bytes32 orderHash,OrderFulfillment fulfillment,OrderMetadata metadata,uint256 expiration,address intendedFulfiller)"
             );
 
             // Derive RentPayload type hash via combination of relevant type strings.

@@ -52,8 +52,6 @@ contract OrderFulfiller is OrderCreator {
         AdvancedOrder advancedOrder;
     }
 
-    uint256 rentPayloadNonce;
-
     // components of a fulfillment
     ProtocolAccount fulfiller;
     OrderToFulfill[] ordersToFulfill;
@@ -94,16 +92,12 @@ contract OrderFulfiller is OrderCreator {
             orderToFulfill.payload,
             RentPayload(
                 orderHash,
-                rentPayloadNonce,
                 fulfillment,
                 metadata,
                 block.timestamp + 100,
                 _fulfiller.addr
             )
         );
-
-        // increment the rent payload nonce
-        rentPayloadNonce++;
 
         // generate the signature for the payload
         bytes memory signature = _signProtocolOrder(
@@ -168,7 +162,6 @@ contract OrderFulfiller is OrderCreator {
 
         // create the rest of the single slot parameters on the rental payload
         storagePayload.orderHash = payload.orderHash;
-        storagePayload.nonce = payload.nonce;
         storagePayload.expiration = payload.expiration;
         storagePayload.intendedFulfiller = payload.intendedFulfiller;
     }
@@ -287,12 +280,16 @@ contract OrderFulfiller is OrderCreator {
                 ? SettleTo.RENTER
                 : SettleTo.LENDER;
 
+            // get the advanced order
+            AdvancedOrder memory advancedOrder = orderToFulfill.advancedOrder;
+
             // create a new rental item
             rentalOrder.items[i] = Item({
                 itemType: itemType,
                 settleTo: settleTo,
                 token: offerItem.token,
-                amount: offerItem.startAmount,
+                amount: (offerItem.startAmount * advancedOrder.numerator) /
+                    advancedOrder.denominator,
                 identifier: offerItem.identifierOrCriteria
             });
         }
@@ -322,12 +319,16 @@ contract OrderFulfiller is OrderCreator {
             // calculate item index offset
             uint256 itemIndex = i + parameters.offer.length;
 
+            // get the advanced order
+            AdvancedOrder memory advancedOrder = orderToFulfill.advancedOrder;
+
             // create a new payment item
             rentalOrder.items[itemIndex] = Item({
                 itemType: itemType,
                 settleTo: settleTo,
                 token: considerationItem.token,
-                amount: considerationItem.startAmount,
+                amount: (considerationItem.startAmount * advancedOrder.numerator) /
+                    advancedOrder.denominator,
                 identifier: considerationItem.identifierOrCriteria
             });
         }

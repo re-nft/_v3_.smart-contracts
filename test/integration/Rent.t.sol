@@ -7,7 +7,9 @@ import {
     ConsiderationItem,
     FulfillmentComponent,
     Fulfillment,
-    ItemType as SeaportItemType
+    ItemType as SeaportItemType,
+    OrderType as SeaportOrderType,
+    AdvancedOrder
 } from "@seaport-types/lib/ConsiderationStructs.sol";
 import {OfferItemLib, ConsiderationItemLib} from "@seaport-sol/SeaportSol.sol";
 
@@ -563,4 +565,65 @@ contract TestRent is BaseTest {
             )
         );
     }
+
+    function test_Revert_Rent_BaseOrder_PartialOrder() public {
+        // mint 2 tokens to the lender
+        erc1155s[0].mint(alice.addr, 0, 2);
+
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 0,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // add custom offer item for one of the tokens
+        withOfferItem(
+            OfferItemLib
+                .empty()
+                .withItemType(SeaportItemType.ERC1155)
+                .withToken(address(erc1155s[0]))
+                .withIdentifierOrCriteria(0)
+                .withStartAmount(2)
+                .withEndAmount(2)
+        );
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizePartialOrder();
+
+        // create the first order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // convert the fulfillment into a partial 50% fulfillment
+        ordersToFulfill[0].advancedOrder.denominator = 2;
+
+        // finalize the base order fulfillment
+        finalizeBaseOrderFulfillment();
+
+        // Expect revert because partial orders are not supported
+        finalizePayOrderFulfillmentWithError(
+            abi.encodeWithSelector(
+                Errors.CreatePolicy_SeaportOrderTypeNotSupported.selector,
+                SeaportOrderType.PARTIAL_RESTRICTED
+            )
+        );
+    }
+
+    function test_Reverts_Rent_BaseOrder_InvalidRentPayloadSigner() public {}
+
+    function test_Reverts_Rent_BaseOrder_RentPayloadReplay() public {}
 }

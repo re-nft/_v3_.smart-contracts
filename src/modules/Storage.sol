@@ -25,10 +25,6 @@ contract StorageBase {
     // value of 0.
     mapping(RentalId itemId => uint256 amount) public rentedAssets;
 
-    // Points the hash of a payload to whether it has been consumed by the protocol.
-    // This mapping prevents the same signature from being used with more than one order.
-    mapping(bytes32 payloadHash => bool isConsumed) public consumedPayloads;
-
     // Maximum rent duration.
     uint256 public maxRentDuration;
 
@@ -419,15 +415,5 @@ contract Storage is Proxiable, Module, StorageBase {
      */
     function setMaxRentDuration(uint256 newDuration) external onlyByProxy permissioned {
         maxRentDuration = newDuration;
-    }
-
-    /**
-     * Consumes a `RentPayloadSignatureHash` to ensure that it cannot be used to validate
-     * more than one rental order at a time.
-     *
-     * @param payloadHash Hash of the `RentalPayload` struct which was signed by the counterparty.
-     */
-    function consumePayload(bytes32 payloadHash) external onlyByProxy permissioned {
-        consumedPayloads[payloadHash] = true;
     }
 }
