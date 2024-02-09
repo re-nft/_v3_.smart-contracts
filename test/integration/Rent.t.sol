@@ -611,11 +611,8 @@ contract TestRent is BaseTest {
         // convert the fulfillment into a partial 50% fulfillment
         ordersToFulfill[0].advancedOrder.denominator = 2;
 
-        // finalize the base order fulfillment
-        finalizeBaseOrderFulfillment();
-
         // Expect revert because partial orders are not supported
-        finalizePayOrderFulfillmentWithError(
+        finalizeBaseOrderFulfillmentWithError(
             abi.encodeWithSelector(
                 Errors.CreatePolicy_SeaportOrderTypeNotSupported.selector,
                 SeaportOrderType.PARTIAL_RESTRICTED
