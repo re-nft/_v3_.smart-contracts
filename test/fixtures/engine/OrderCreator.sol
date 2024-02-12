@@ -31,6 +31,8 @@ import {ProtocolAccount} from "@test/utils/Types.sol";
 
 import {OrderMetadata, OrderType, Hook} from "@src/libraries/RentalStructs.sol";
 
+import "forge-std/console.sol";
+
 // Sets up logic in the test engine related to order creation
 contract OrderCreator is BaseProtocol {
     using OfferItemLib for OfferItem;
@@ -71,6 +73,7 @@ contract OrderCreator is BaseProtocol {
             .withEndTime(block.timestamp + 100)
             .withSalt(123456789)
             .withConduitKey(conduitKey)
+            .withOrderType(SeaportOrderType.FULL_RESTRICTED)
             .saveDefault(STANDARD_ORDER_COMPONENTS);
 
         // for each test token, create a storage slot
@@ -268,8 +271,7 @@ contract OrderCreator is BaseProtocol {
         ProtocolAccount memory _offerer,
         OfferItem[] memory _offerItems,
         ConsiderationItem[] memory _considerationItems,
-        OrderMetadata memory _metadata,
-        SeaportOrderType orderType
+        OrderMetadata memory _metadata
     ) private view returns (Order memory order, bytes32 orderHash) {
         // put offerer address on stack
         address offerer = _offerer.addr;
@@ -277,7 +279,6 @@ contract OrderCreator is BaseProtocol {
         // Build the order components
         OrderComponents memory orderComponents = OrderComponentsLib
             .fromDefault(STANDARD_ORDER_COMPONENTS)
-            .withOrderType(orderType)
             .withOfferer(offerer)
             .withOffer(_offerItems)
             .withConsideration(_considerationItems)
@@ -406,20 +407,36 @@ contract OrderCreator is BaseProtocol {
         delete orderToCreate.metadata;
     }
 
+    function withOrderType(SeaportOrderType orderType) internal {
+        // update the order type
+        OrderComponentsLib
+            .fromDefault(STANDARD_ORDER_COMPONENTS)
+            .withOrderType(orderType)
+            .saveDefault(STANDARD_ORDER_COMPONENTS);
+    }
+
+    function withSalt(uint256 salt) internal {
+        // update the salt for the order
+        OrderComponentsLib
+            .fromDefault(STANDARD_ORDER_COMPONENTS)
+            .withSalt(salt)
+            .saveDefault(STANDARD_ORDER_COMPONENTS);
+    }
+
     /////////////////////////////////////////////////////////////////////////////////
     //                              Order Finalization                             //
     /////////////////////////////////////////////////////////////////////////////////
 
-    function _finalizeOrder(
-        SeaportOrderType orderType
-    ) private returns (Order memory, bytes32, OrderMetadata memory) {
+    function finalizeOrder()
+        internal
+        returns (Order memory, bytes32, OrderMetadata memory)
+    {
         // create and sign the order
         (Order memory order, bytes32 orderHash) = _createSignedOrder(
             orderToCreate.offerer,
             orderToCreate.offerItems,
             orderToCreate.considerationItems,
-            orderToCreate.metadata,
-            orderType
+            orderToCreate.metadata
         );
 
         // pull order metadata into memory
@@ -429,19 +446,5 @@ contract OrderCreator is BaseProtocol {
         resetOrderToCreate();
 
         return (order, orderHash, metadata);
-    }
-
-    function finalizePartialOrder()
-        internal
-        returns (Order memory, bytes32, OrderMetadata memory)
-    {
-        return _finalizeOrder(SeaportOrderType.PARTIAL_RESTRICTED);
-    }
-
-    function finalizeOrder()
-        internal
-        returns (Order memory, bytes32, OrderMetadata memory)
-    {
-        return _finalizeOrder(SeaportOrderType.FULL_RESTRICTED);
     }
 }

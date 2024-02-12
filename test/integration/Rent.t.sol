@@ -18,7 +18,8 @@ import {
     OrderType,
     OrderMetadata,
     RentalOrder,
-    Hook
+    Hook,
+    RentPayload
 } from "@src/libraries/RentalStructs.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
@@ -566,7 +567,7 @@ contract TestRent is BaseTest {
         );
     }
 
-    function test_Revert_Rent_BaseOrder_PartialOrder() public {
+    function test_Reverts_Rent_BaseOrder_PartialOrder() public {
         // mint 2 tokens to the lender
         erc1155s[0].mint(alice.addr, 0, 2);
 
@@ -593,12 +594,15 @@ contract TestRent is BaseTest {
                 .withEndAmount(2)
         );
 
+        // add partial restricted order type
+        withOrderType(SeaportOrderType.PARTIAL_RESTRICTED);
+
         // finalize the order creation
         (
             Order memory order,
             bytes32 orderHash,
             OrderMetadata memory metadata
-        ) = finalizePartialOrder();
+        ) = finalizeOrder();
 
         // create the first order fulfillment
         createOrderFulfillment({
@@ -620,7 +624,137 @@ contract TestRent is BaseTest {
         );
     }
 
-    function test_Reverts_Rent_BaseOrder_InvalidRentPayloadSigner() public {}
+    function test_Reverts_Rent_BaseOrder_InvalidRentPayloadSigner() public {
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 1,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
 
-    function test_Reverts_Rent_BaseOrder_RentPayloadReplay() public {}
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // get the advanced order and the rent payload
+        AdvancedOrder memory advancedOrder = ordersToFulfill[0].advancedOrder;
+        (RentPayload memory payload, ) = abi.decode(
+            advancedOrder.extraData,
+            (RentPayload, bytes)
+        );
+
+        // generate the signature for the payload
+        bytes memory signature = _signProtocolOrder(
+            bob.privateKey,
+            create.getRentPayloadHash(payload)
+        );
+
+        // Pass the rental payload as extra data
+        ordersToFulfill[0].advancedOrder.extraData = abi.encode(payload, signature);
+
+        // Expect revert because the co-signer is incorrect
+        finalizeBaseOrderFulfillmentWithError(
+            abi.encodeWithSelector(
+                Errors.CreatePolicy_UnauthorizedCreatePolicySigner.selector,
+                bob.addr
+            )
+        );
+    }
+
+    function test_Reverts_Rent_BaseOrder_RentPayloadReplay() public {
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 1,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // get the rent payload to reuse with a different order
+        bytes memory encodedRentPayloadToReuse = ordersToFulfill[0]
+            .advancedOrder
+            .extraData;
+
+        // finalize the base order fulfillment
+        finalizeBaseOrderFulfillment();
+
+        // create another BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 1,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // change the salt of the order
+        withSalt(uint256(keccak256("random salt")));
+
+        // finalize the order creation of the second order
+        (
+            Order memory secondOrder,
+            bytes32 secondOrderHash,
+            OrderMetadata memory secondMetadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment for the second order
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: secondOrder,
+            orderHash: secondOrderHash,
+            metadata: secondMetadata
+        });
+
+        // since the orders are identical except for the salt, try to swap in a signature and
+        // payload from another similar order
+        ordersToFulfill[0].advancedOrder.extraData = encodedRentPayloadToReuse;
+
+        // Expect revert because the order hash of the order to fulfill differs from the
+        // order hash that was included in the rent payload
+        finalizeBaseOrderFulfillmentWithError(
+            abi.encodeWithSelector(
+                Errors.CreatePolicy_InvalidPayloadForOrderHash.selector,
+                orderHash,
+                secondOrderHash
+            )
+        );
+    }
 }
