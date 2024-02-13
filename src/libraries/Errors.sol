@@ -262,6 +262,10 @@ library Errors {
      */
     error GuardPolicy_UnauthorizedDelegateCall(address to);
 
+    /////////////////////////////////////////////////////////////////////////////////
+    //                               Fallback Policy                               //
+    /////////////////////////////////////////////////////////////////////////////////
+
     /**
      * @dev Thrown when attempting to validate a message hash that was not signed
      *      by any owners of the rental safe.
@@ -269,6 +273,16 @@ library Errors {
      * @param messageHash Message digest that was signed.
      */
     error FallbackPolicy_HashNotSigned(bytes32 messageHash);
+
+    /**
+     * @dev Thrown when a signature is attempting to be validated from a token
+     *      contract that has been whitelisted for renting on the protocol. This
+     *      error is thrown to protect the assets from token approvals being gaslessly
+     *      signed to transfer the asset from the rental safe.abi
+     *
+     * @param sender Address that requested the signature validation.
+     */
+    error FallbackPolicy_UnauthorizedSender(address sender);
 
     /////////////////////////////////////////////////////////////////////////////////
     //                             Payment Escrow Module                           //

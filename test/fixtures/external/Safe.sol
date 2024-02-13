@@ -12,8 +12,6 @@ contract External_Safe is Test {
     SafeL2 public safeSingleton;
     SafeProxyFactory public safeProxyFactory;
 
-    TokenCallbackHandler public tokenCallbackHandler;
-
     function setUp() public virtual {
         // Deploy safe singleton contract
         safeSingleton = new SafeL2();
@@ -21,12 +19,8 @@ contract External_Safe is Test {
         // Deploy safe proxy factory
         safeProxyFactory = new SafeProxyFactory();
 
-        // Deploy token callback handler to allow this safe to receive ERC721 and ERC1155 tokens
-        tokenCallbackHandler = new TokenCallbackHandler();
-
         // Label the contracts
         vm.label(address(safeSingleton), "SafeSingleton");
         vm.label(address(safeProxyFactory), "SafeProxyFactory");
-        vm.label(address(tokenCallbackHandler), "TokenCallbackHandler");
     }
 }

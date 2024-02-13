@@ -123,6 +123,14 @@ contract Fallback is
         bytes memory data,
         bytes memory signature
     ) public view override returns (bytes4) {
+        // Get the original sender. This is the address that called the safe.
+        address originalSender = _msgSender();
+
+        // Determine if the original sender is a token that has been whitelisted.
+        if (STORE.whitelistedAssets(originalSender)) {
+            revert Errors.FallbackPolicy_UnauthorizedSender(originalSender);
+        }
+
         // Caller should be a Safe.
         Safe safe = Safe(payable(msg.sender));
 
@@ -154,10 +162,7 @@ contract Fallback is
         bytes calldata signature
     ) external view returns (bytes4) {
         // Determine if the signature is valid.
-        bytes4 value = ISignatureValidator(msg.sender).isValidSignature(
-            abi.encode(dataHash),
-            signature
-        );
+        bytes4 value = isValidSignature(abi.encode(dataHash), signature);
 
         // To maintain compatibility, pass the updated EIP-1271 value.
         return (value == EIP1271_MAGIC_VALUE) ? UPDATED_EIP1271_VALUE : bytes4(0);
