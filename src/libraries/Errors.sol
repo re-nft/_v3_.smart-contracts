@@ -262,6 +262,14 @@ library Errors {
      */
     error GuardPolicy_UnauthorizedDelegateCall(address to);
 
+    /**
+     * @dev Thrown when attempting to validate a message hash that was not signed
+     *      by any owners of the rental safe.
+     *
+     * @param messageHash Message digest that was signed.
+     */
+    error FallbackPolicy_HashNotSigned(bytes32 messageHash);
+
     /////////////////////////////////////////////////////////////////////////////////
     //                             Payment Escrow Module                           //
     /////////////////////////////////////////////////////////////////////////////////

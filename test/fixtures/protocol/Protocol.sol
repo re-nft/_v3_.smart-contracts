@@ -14,6 +14,7 @@ import {Stop} from "@src/policies/Stop.sol";
 import {Factory} from "@src/policies/Factory.sol";
 import {Admin} from "@src/policies/Admin.sol";
 import {Guard} from "@src/policies/Guard.sol";
+import {Fallback} from "@src/policies/Fallback.sol";
 import {toRole} from "@src/libraries/KernelUtils.sol";
 import {Proxy} from "@src/proxy/Proxy.sol";
 
@@ -36,6 +37,7 @@ contract Protocol is TokenCreator {
     Factory public factory;
     Admin public admin;
     Guard public guard;
+    Fallback public fallbackPolicy;
 
     // Protocol accounts
     Vm.Wallet public rentalSigner;
@@ -192,6 +194,21 @@ contract Protocol is TokenCreator {
         vm.label(address(guard), "GuardPolicy");
     }
 
+    function _deployFallbackPolicy() internal {
+        // abi encode the fallback policy bytecode and constructor arguments
+        bytes memory fallbackInitCode = abi.encodePacked(
+            type(Fallback).creationCode,
+            abi.encode(address(kernel))
+        );
+
+        // Deploy falback policy contract
+        vm.prank(deployer.addr);
+        fallbackPolicy = Fallback(create2Deployer.deploy(salt, fallbackInitCode));
+
+        // label the contract
+        vm.label(address(fallbackPolicy), "fallbackPolicy");
+    }
+
     function _deployFactoryPolicy() internal {
         // abi encode the factory policy bytecode and constructor arguments
         bytes memory factoryInitCode = abi.encodePacked(
@@ -200,7 +217,7 @@ contract Protocol is TokenCreator {
                 address(kernel),
                 address(stop),
                 address(guard),
-                address(tokenCallbackHandler),
+                address(fallbackPolicy),
                 address(safeProxyFactory),
                 address(safeSingleton)
             )
@@ -228,6 +245,7 @@ contract Protocol is TokenCreator {
         kernel.executeAction(Actions.ActivatePolicy, address(factory));
         kernel.executeAction(Actions.ActivatePolicy, address(guard));
         kernel.executeAction(Actions.ActivatePolicy, address(admin));
+        kernel.executeAction(Actions.ActivatePolicy, address(fallbackPolicy));
 
         // Grant `seaport` role to seaport protocol
         kernel.grantRole(toRole("SEAPORT"), address(seaport));
@@ -296,6 +314,9 @@ contract Protocol is TokenCreator {
 
         // Deploy rental storage
         _deployStorageModule();
+
+        // Deploy fallback policy
+        _deployFallbackPolicy();
 
         // deploy create policy
         _deployCreatePolicy();
