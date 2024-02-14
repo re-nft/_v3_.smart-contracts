@@ -123,6 +123,11 @@ contract Fallback is
         bytes memory data,
         bytes memory signature
     ) public view override returns (bytes4) {
+        // Check if this fallback is active for the protocol.
+        if (!isActive) {
+            revert Errors.FallbackPolicy_Deactivated();
+        }
+
         // Get the original sender. This is the address that called the safe.
         address originalSender = _msgSender();
 
