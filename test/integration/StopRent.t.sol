@@ -4,11 +4,12 @@ pragma solidity ^0.8.20;
 import {Order} from "@seaport-types/lib/ConsiderationStructs.sol";
 
 import {OrderType, OrderMetadata, RentalOrder} from "@src/libraries/RentalStructs.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract TestStopRent is BaseTest {
-    function test_StopRent_BaseOrder() public {
+    function test_Success_StopRent_BaseOrder() public {
         // create a BASE order
         createOrder({
             offerer: alice,
@@ -65,7 +66,7 @@ contract TestStopRent is BaseTest {
         assertEq(erc20s[0].balanceOf(address(ESCRW)), uint256(0));
     }
 
-    function test_StopRent_PayOrder_InFull_StoppedByLender() public {
+    function test__Success_StopRent_PayOrder_InFull_StoppedByLender() public {
         // create a PAY order
         createOrder({
             offerer: alice,
@@ -155,7 +156,7 @@ contract TestStopRent is BaseTest {
         assertEq(erc20s[0].balanceOf(address(ESCRW)), uint256(0));
     }
 
-    function test_stopRent_payOrder_inFull_stoppedByRenter() public {
+    function Test__Success_StopRent_PayOrder_InFull_StoppedByRenter() public {
         // create a PAY order
         createOrder({
             offerer: alice,
@@ -245,7 +246,7 @@ contract TestStopRent is BaseTest {
         assertEq(erc20s[0].balanceOf(address(ESCRW)), uint256(0));
     }
 
-    function test_stopRent_payOrder_proRata_stoppedByLender() public {
+    function test_Success_StopRent_PayOrder_ProRata_StoppedByLender() public {
         // create a PAY order
         createOrder({
             offerer: alice,
@@ -333,5 +334,55 @@ contract TestStopRent is BaseTest {
 
         // assert that a payment was pulled from the escrow contract
         assertEq(erc20s[0].balanceOf(address(ESCRW)), uint256(0));
+    }
+
+    function test_Reverts_StopRent_BaseOrder_NonExistentOrder() public {
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 1,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // finalize the base order fulfillment
+        RentalOrder memory rentalOrder = finalizeBaseOrderFulfillment();
+
+        // assert that the rental safe is the current owner of the asset
+        assertEq(erc721s[0].ownerOf(0), address(bob.safe));
+
+        // speed up in time past the rental expiration
+        vm.warp(block.timestamp + 750);
+
+        // tweak the rental order to send it to the attackers wallet
+        rentalOrder.lender = carol.addr;
+
+        // Expect revert before any tokens are sent back
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.StopPolicy_OrderDoesNotExist.selector,
+                create.getRentalOrderHash(rentalOrder)
+            )
+        );
+        stop.stopRent(rentalOrder);
     }
 }
