@@ -228,13 +228,8 @@ contract Storage is Proxiable, Module, StorageBase {
         bytes32 orderHash,
         RentalAssetUpdate[] calldata rentalAssetUpdates
     ) external onlyByProxy permissioned {
-        // The order must exist to be deleted.
-        if (!orders[orderHash]) {
-            revert Errors.StorageModule_OrderDoesNotExist(orderHash);
-        } else {
-            // Delete the order from storage.
-            delete orders[orderHash];
-        }
+        // Delete the order from storage.
+        delete orders[orderHash];
 
         // Process each rental asset.
         for (uint256 i = 0; i < rentalAssetUpdates.length; ++i) {
@@ -258,13 +253,8 @@ contract Storage is Proxiable, Module, StorageBase {
     ) external onlyByProxy permissioned {
         // Delete the orders from storage.
         for (uint256 i = 0; i < orderHashes.length; ++i) {
-            // The order must exist to be deleted.
-            if (!orders[orderHashes[i]]) {
-                revert Errors.StorageModule_OrderDoesNotExist(orderHashes[i]);
-            } else {
-                // Delete the order from storage.
-                delete orders[orderHashes[i]];
-            }
+            // Delete the order from storage.
+            delete orders[orderHashes[i]];
         }
 
         // Process each rental asset.

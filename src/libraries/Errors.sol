@@ -195,6 +195,13 @@ library Errors {
     /////////////////////////////////////////////////////////////////////////////////
 
     /**
+     * @dev Thrown when an order hash does not exist.
+     *
+     * @param orderHash Hash of the rental order.
+     */
+    error StopPolicy_OrderDoesNotExist(bytes32 orderHash);
+
+    /**
      * @dev Thrown when either the timestamp or the stopper address is invalid when
      *      stopping an order.
      *
@@ -326,13 +333,6 @@ library Errors {
     /////////////////////////////////////////////////////////////////////////////////
     //                                 Storage Module                              //
     /////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @dev Thrown when an order hash does not exist.
-     *
-     * @param orderHash Hash of the rental order.
-     */
-    error StorageModule_OrderDoesNotExist(bytes32 orderHash);
 
     /**
      * @dev Thrown when attempting to enable a hook using a non-contract address.

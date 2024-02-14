@@ -31,7 +31,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         vm.prank(alice.addr);
 
         // Expect the rental can be stopped
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
             block.timestamp - 1,
             alice.addr
@@ -43,7 +43,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         vm.prank(bob.addr);
 
         // Expect the rental can be stopped
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
             block.timestamp - 1,
             alice.addr
@@ -62,7 +62,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
                 alice.addr
             )
         );
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
             block.timestamp + 1,
             alice.addr
@@ -81,7 +81,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
                 bob.addr
             )
         );
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
             block.timestamp + 1,
             alice.addr
@@ -93,7 +93,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         vm.prank(alice.addr);
 
         // Expect the rental can be stopped
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
             block.timestamp - 1,
             alice.addr
@@ -105,7 +105,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         vm.prank(bob.addr);
 
         // Expect the rental can be stopped
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
             block.timestamp - 1,
             alice.addr
@@ -117,7 +117,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         vm.prank(alice.addr);
 
         // Expect the rental can be stopped
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
             block.timestamp + 1,
             alice.addr
@@ -137,7 +137,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
                 bob.addr
             )
         );
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
             block.timestamp + 1,
             alice.addr
@@ -156,7 +156,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
                 uint256(2)
             )
         );
-        stopHarness.validateRentalCanBeStoped(
+        stopHarness.validateRentalCanBeStopped(
             OrderType.PAYEE,
             block.timestamp - 1,
             alice.addr
