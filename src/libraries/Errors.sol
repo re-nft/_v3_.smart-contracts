@@ -284,6 +284,12 @@ library Errors {
      */
     error FallbackPolicy_UnauthorizedSender(address sender);
 
+    /**
+     * @dev Thrown when attempting to validate a contract signature through the Fallback
+     *      Policy that is no longer active.
+     */
+    error FallbackPolicy_Deactivated();
+
     /////////////////////////////////////////////////////////////////////////////////
     //                             Payment Escrow Module                           //
     /////////////////////////////////////////////////////////////////////////////////
