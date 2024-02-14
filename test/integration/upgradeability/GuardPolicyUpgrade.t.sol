@@ -42,9 +42,6 @@ contract GuardPolicyUpgrade_Upgradeability_Integration_Test is BaseTest {
         // enable the new stop policy
         kernel.executeAction(Actions.ActivatePolicy, address(newGuardPolicy));
 
-        // disable the old stop policy
-        kernel.executeAction(Actions.DeactivatePolicy, address(guard));
-
         // enable the migration contract to be delegate called by rental safes
         admin.toggleWhitelistDelegate(address(migration), true);
 
