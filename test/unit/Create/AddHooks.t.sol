@@ -91,9 +91,12 @@ contract Create_AddHooks_Unit_Test is BaseTestWithoutEngine {
 
         // link the offer items to the hooks
         createHarness.addHooks(hooks, offerItems, address(alice.safe));
+
+        // assert that the hook was called
+        assertEq(mockHook.entryAdded(), true);
     }
 
-    function test_Reverts_AddHooks_DisabledHook() public {
+    function test_Success_AddHooks_Skipped() public {
         // impersonate an address with permissions
         vm.prank(deployer.addr);
 
@@ -113,11 +116,11 @@ contract Create_AddHooks_Unit_Test is BaseTestWithoutEngine {
         Hook[] memory hooks = new Hook[](1);
         hooks[0] = Hook({target: address(mockHook), itemIndex: 0, extraData: bytes("")});
 
-        // Expect revert because the hook wasnt yet enabled
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.Shared_DisabledHook.selector, address(mockHook))
-        );
+        // Expect the call to succeed since the hook call is skipped
         createHarness.addHooks(hooks, offerItems, address(alice.safe));
+
+        // assert that the hook was not called
+        assertEq(mockHook.entryAdded(), false);
     }
 
     function test_Reverts_AddHooks_NonRentalHookItem() public {
