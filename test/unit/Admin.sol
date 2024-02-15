@@ -224,4 +224,26 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         );
         admin.freezePaymentEscrow();
     }
+
+    function test_Success_SetMaxRentDuration() public {
+        // impersonate an address with permissions
+        vm.prank(deployer.addr);
+
+        // set the max rent duration
+        admin.setMaxRentDuration(22 days);
+
+        // expect the max rent duration to have changed
+        assertEq(STORE.maxRentDuration(), 22 days);
+    }
+
+    function test_Reverts_SetMaxRentDuration_NotAmin() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.setMaxRentDuration(22 days);
+    }
 }

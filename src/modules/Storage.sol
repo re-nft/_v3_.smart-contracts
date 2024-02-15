@@ -25,6 +25,9 @@ contract StorageBase {
     // value of 0.
     mapping(RentalId itemId => uint256 amount) public rentedAssets;
 
+    // Maximum rent duration.
+    uint256 public maxRentDuration;
+
     /////////////////////////////////////////////////////////////////////////////////
     //                            Deployed Safe Storage                            //
     /////////////////////////////////////////////////////////////////////////////////
@@ -369,5 +372,14 @@ contract Storage is Proxiable, Module, StorageBase {
     function freeze() external onlyByProxy permissioned {
         // _freeze is implemented in the Proxiable contract.
         _freeze();
+    }
+
+    /**
+     * @notice Sets the maximum rent duration.
+     * 
+     * @param newDuration The new maximum rent duration.
+     */
+    function setMaxRentDuration(uint256 newDuration) external onlyByProxy permissioned {
+        maxRentDuration = newDuration;
     }
 }

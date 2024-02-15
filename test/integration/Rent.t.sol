@@ -9,7 +9,12 @@ import {
 } from "@seaport-types/lib/ConsiderationStructs.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {OrderType, OrderMetadata, RentalOrder} from "@src/libraries/RentalStructs.sol";
+import {
+    OrderType,
+    OrderMetadata,
+    RentalOrder,
+    Hook
+} from "@src/libraries/RentalStructs.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {ProtocolAccount} from "@test/utils/Types.sol";
@@ -66,6 +71,53 @@ contract TestRent is BaseTest {
 
         // assert that the ERC721 is in the rental wallet of the fulfiller
         assertEq(erc721s[0].ownerOf(0), address(bob.safe));
+    }
+
+    function test_Reverts_Rent_BaseOrder_MaxRentDurationExceeded() public {
+        // create a BASE order
+        createOrder({
+            offerer: alice,
+            orderType: OrderType.BASE,
+            erc721Offers: 1,
+            erc1155Offers: 0,
+            erc20Offers: 0,
+            erc721Considerations: 0,
+            erc1155Considerations: 0,
+            erc20Considerations: 1
+        });
+
+        // add an order metadata amendment
+        withOrderMetadata(
+            OrderMetadata({
+                orderType: OrderType.BASE,
+                rentDuration: 30 days,
+                hooks: new Hook[](0),
+                emittedExtraData: bytes("")
+            })
+        );
+
+        // finalize the order creation
+        (
+            Order memory order,
+            bytes32 orderHash,
+            OrderMetadata memory metadata
+        ) = finalizeOrder();
+
+        // create an order fulfillment
+        createOrderFulfillment({
+            _fulfiller: bob,
+            order: order,
+            orderHash: orderHash,
+            metadata: metadata
+        });
+
+        // Expect revert because the rent duration is too long
+        finalizeBaseOrderFulfillmentWithError(
+            abi.encodeWithSelector(
+                Errors.CreatePolicy_RentDurationTooLong.selector,
+                30 days
+            )
+        );
     }
 
     function test_Success_Rent_BaseOrder_ERC1155() public {

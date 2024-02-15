@@ -499,4 +499,26 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         );
         STORE.toggleWhitelistExtension(TEST_ADDR_1, true);
     }
+
+    function test_Success_SetMaxRentDuration() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // set the max rent duration
+        STORE.setMaxRentDuration(22 days);
+
+        // assert the max rent duration changed
+        assertEq(STORE.maxRentDuration(), 22 days);
+    }
+
+    function test_Reverts_SetMaxRentDuration_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.setMaxRentDuration(22 days);
+    }
 }

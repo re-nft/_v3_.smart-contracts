@@ -627,6 +627,11 @@ contract Create is Policy, Signer, Zone, Accumulator {
         OrderMetadata memory metadata,
         bytes32 zoneHash
     ) internal view {
+        // Check that the rent duration specified is not too long.
+        if (STORE.maxRentDuration() < metadata.rentDuration) {
+            revert Errors.CreatePolicy_RentDurationTooLong(metadata.rentDuration);
+        }
+
         // Check that the rent duration specified is not zero.
         if (metadata.rentDuration == 0) {
             revert Errors.CreatePolicy_RentDurationZero();
