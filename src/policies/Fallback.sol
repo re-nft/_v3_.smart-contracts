@@ -5,14 +5,11 @@ import {Safe} from "@safe-contracts/Safe.sol";
 import {HandlerContext} from "@safe-contracts/handler/HandlerContext.sol";
 import {ISignatureValidator} from "@safe-contracts/interfaces/ISignatureValidator.sol";
 
-import {IERC165} from "@src/interfaces/IERC165.sol";
-import {IERC721TokenReceiver} from "@src/interfaces/IERC721TokenReceiver.sol";
-import {IERC1155TokenReceiver} from "@src/interfaces/IERC1155TokenReceiver.sol";
-import {IERC777TokensRecipient} from "@src/interfaces/IERC777TokensRecipient.sol";
 import {Kernel, Policy, Permissions, Keycode} from "@src/Kernel.sol";
 import {toKeycode} from "@src/libraries/KernelUtils.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Storage} from "@src/modules/Storage.sol";
+import {TokenReceiver} from "@src/packages/TokenReceiver.sol";
 
 /**
  * @title Fallback
@@ -21,14 +18,7 @@ import {Storage} from "@src/modules/Storage.sol";
  *         be prevented from doing so if they are assets that can be rented through the
  *         protocol.
  */
-contract Fallback is
-    Policy,
-    IERC721TokenReceiver,
-    IERC1155TokenReceiver,
-    IERC165,
-    ISignatureValidator,
-    HandlerContext
-{
+contract Fallback is Policy, TokenReceiver, ISignatureValidator, HandlerContext {
     /////////////////////////////////////////////////////////////////////////////////
     //                         Kernel Policy Configuration                         //
     /////////////////////////////////////////////////////////////////////////////////
@@ -39,15 +29,6 @@ contract Fallback is
 
     // bytes4(keccak256("isValidSignature(bytes32,bytes)")
     bytes4 private constant UPDATED_EIP1271_VALUE = 0x1626ba7e;
-
-    // bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))
-    bytes4 private constant ERC721_RECEIVED_VALUE = 0x150b7a02;
-
-    // bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
-    bytes4 private constant ERC1155_RECEIVED_VALUE = 0xf23a6e61;
-
-    // bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))
-    bytes4 private constant ERC1155_BATCH_RECEIVED_VALUE = 0xbc197c81;
 
     // Modules that the policy depends on.
     Storage public STORE;
@@ -171,75 +152,5 @@ contract Fallback is
 
         // To maintain compatibility, pass the updated EIP-1271 value.
         return (value == EIP1271_MAGIC_VALUE) ? UPDATED_EIP1271_VALUE : bytes4(0);
-    }
-
-    /**
-     * @notice Handles the callback when receiving ERC721 tokens.
-     *
-     * @return ERC721_RECEIVED_VALUE
-     */
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        return ERC721_RECEIVED_VALUE;
-    }
-
-    /**
-     * @notice Handles the callback when receiving ERC1155 tokens.
-     *
-     * @return ERC1155_RECEIVED_VALUE
-     */
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        return ERC1155_RECEIVED_VALUE;
-    }
-
-    /**
-     * @notice Handles the callback when receiving multiple ERC1155 tokens.
-     *
-     * @return ERC1155_BATCH_RECEIVED_VALUE
-     */
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        return ERC1155_BATCH_RECEIVED_VALUE;
-    }
-
-    /**
-     * @notice Handles the callback when receiving ERC777 tokens.
-     */
-    function tokensReceived(
-        address,
-        address,
-        address,
-        uint256,
-        bytes calldata,
-        bytes calldata
-    ) external {}
-
-    /**
-     * @notice Implements support for IERC165, IERC721TokenReceiver, and IERC1155TokenReceiver.
-     *
-     * @param interfaceId The interface identifier, as specified in ERC-165.
-     *
-     * @return whether the contract supports `interfaceId`.
-     */
-    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
-        return
-            interfaceId == type(IERC721TokenReceiver).interfaceId ||
-            interfaceId == type(IERC1155TokenReceiver).interfaceId ||
-            interfaceId == type(IERC165).interfaceId;
     }
 }
