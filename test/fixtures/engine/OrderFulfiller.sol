@@ -90,7 +90,13 @@ contract OrderFulfiller is OrderCreator {
         // create rental zone payload data
         _createRentalPayload(
             orderToFulfill.payload,
-            RentPayload(fulfillment, metadata, block.timestamp + 100, _fulfiller.addr)
+            RentPayload(
+                orderHash,
+                fulfillment,
+                metadata,
+                block.timestamp + 100,
+                _fulfiller.addr
+            )
         );
 
         // generate the signature for the payload
@@ -150,16 +156,13 @@ contract OrderFulfiller is OrderCreator {
         RentPayload storage storagePayload,
         RentPayload memory payload
     ) private {
-        // set payload fulfillment on the order to fulfill
+        // set payload struct fields
         _createOrderFulfillment(storagePayload.fulfillment, payload.fulfillment);
-
-        // set payload metadata on the order to fulfill
         _createOrderMetadata(storagePayload.metadata, payload.metadata);
 
-        // set payload expiration on the order to fulfill
+        // create the rest of the single slot parameters on the rental payload
+        storagePayload.orderHash = payload.orderHash;
         storagePayload.expiration = payload.expiration;
-
-        // set payload intended fulfiller on the order to fulfill
         storagePayload.intendedFulfiller = payload.intendedFulfiller;
     }
 
@@ -277,12 +280,16 @@ contract OrderFulfiller is OrderCreator {
                 ? SettleTo.RENTER
                 : SettleTo.LENDER;
 
+            // get the advanced order
+            AdvancedOrder memory advancedOrder = orderToFulfill.advancedOrder;
+
             // create a new rental item
             rentalOrder.items[i] = Item({
                 itemType: itemType,
                 settleTo: settleTo,
                 token: offerItem.token,
-                amount: offerItem.startAmount,
+                amount: (offerItem.startAmount * advancedOrder.numerator) /
+                    advancedOrder.denominator,
                 identifier: offerItem.identifierOrCriteria
             });
         }
@@ -312,12 +319,16 @@ contract OrderFulfiller is OrderCreator {
             // calculate item index offset
             uint256 itemIndex = i + parameters.offer.length;
 
+            // get the advanced order
+            AdvancedOrder memory advancedOrder = orderToFulfill.advancedOrder;
+
             // create a new payment item
             rentalOrder.items[itemIndex] = Item({
                 itemType: itemType,
                 settleTo: settleTo,
                 token: considerationItem.token,
-                amount: considerationItem.startAmount,
+                amount: (considerationItem.startAmount * advancedOrder.numerator) /
+                    advancedOrder.denominator,
                 identifier: considerationItem.identifierOrCriteria
             });
         }

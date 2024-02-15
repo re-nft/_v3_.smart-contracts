@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.20;
 
-import {ZoneParameters} from "@seaport-core/lib/rental/ConsiderationStructs.sol";
+import {
+    ZoneParameters,
+    OrderType as SeaportOrderType
+} from "@seaport-core/lib/rental/ConsiderationStructs.sol";
 import {ReceivedItem, SpentItem} from "@seaport-types/lib/ConsiderationStructs.sol";
 import {LibString} from "@solady/utils/LibString.sol";
 
@@ -33,6 +36,8 @@ import {
 } from "@src/libraries/RentalStructs.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+
+import "forge-std/console.sol";
 
 /**
  * @title Create
@@ -566,6 +571,12 @@ contract Create is Policy, Signer, Zone, Accumulator {
         RentPayload memory payload,
         SeaportPayload memory seaportPayload
     ) internal {
+        // Check: Only full restricted orders are supported.
+        _isValidSeaportOrderType(seaportPayload.orderType);
+
+        // Check: The payload is being used for the correct order.
+        _isValidtPayloadForOrder(payload.orderHash, seaportPayload.orderHash);
+
         // Check: make sure order metadata is valid with the given seaport order zone hash.
         _isValidOrderMetadata(payload.metadata, seaportPayload.zoneHash);
 
@@ -652,6 +663,35 @@ contract Create is Policy, Signer, Zone, Accumulator {
 
             // Emit rental order started.
             _emitRentalOrderStarted(order, orderHash, payload.metadata.emittedExtraData);
+        }
+    }
+
+    /**
+     * @dev Checks that the seaport order type is supported.
+     *
+     * @param orderType Order type for the order to fulfill.
+     */
+    function _isValidSeaportOrderType(SeaportOrderType orderType) internal pure {
+        if (orderType != SeaportOrderType.FULL_RESTRICTED) {
+            revert Errors.CreatePolicy_SeaportOrderTypeNotSupported(orderType);
+        }
+    }
+
+    /**
+     * @dev Checks that a payload is being used for the correct seaport order.
+     *
+     * @param payloadOrderHash Order hash that the payload expects.
+     * @param seaportOrderHash Order hash of the order being fulfilled.
+     */
+    function _isValidtPayloadForOrder(
+        bytes32 payloadOrderHash,
+        bytes32 seaportOrderHash
+    ) internal pure {
+        if (payloadOrderHash != seaportOrderHash) {
+            revert Errors.CreatePolicy_InvalidPayloadForOrderHash(
+                payloadOrderHash,
+                seaportOrderHash
+            );
         }
     }
 
@@ -813,8 +853,15 @@ contract Create is Policy, Signer, Zone, Accumulator {
             consideration: zoneParams.consideration,
             totalExecutions: zoneParams.totalExecutions,
             fulfiller: zoneParams.fulfiller,
-            offerer: zoneParams.offerer
+            offerer: zoneParams.offerer,
+            orderType: zoneParams.orderType
         });
+
+        // Generate the rent payload hash.
+        bytes32 rentPayloadHash = _deriveRentPayloadHash(payload);
+
+        // Recover the signer from the payload.
+        address signer = _recoverSignerFromPayload(rentPayloadHash, signature);
 
         // Check: The signature from the protocol signer has not expired.
         _validateProtocolSignatureExpiration(payload.expiration);
@@ -822,15 +869,9 @@ contract Create is Policy, Signer, Zone, Accumulator {
         // Check: The fulfiller is the intended fulfiller.
         _validateFulfiller(payload.intendedFulfiller, seaportPayload.fulfiller);
 
-        // Recover the signer from the payload.
-        address signer = _recoverSignerFromPayload(
-            _deriveRentPayloadHash(payload),
-            signature
-        );
-
         // Check: The data matches the signature and that the protocol signer is the one that signed.
         if (!kernel.hasRole(signer, toRole("CREATE_SIGNER"))) {
-            revert Errors.CreatePolicy_UnauthorizedCreatePolicySigner();
+            revert Errors.CreatePolicy_UnauthorizedCreatePolicySigner(signer);
         }
 
         // Initiate the rental using the rental manager.

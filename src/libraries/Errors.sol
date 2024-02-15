@@ -3,7 +3,10 @@ pragma solidity ^0.8.0;
 
 import {ItemType, Role, Keycode} from "@src/libraries/RentalStructs.sol";
 
-import {ItemType as SeaportItemType} from "@seaport-types/lib/ConsiderationStructs.sol";
+import {
+    ItemType as SeaportItemType,
+    OrderType as SeaportOrderType
+} from "@seaport-types/lib/ConsiderationStructs.sol";
 
 /**
  * @title Errors
@@ -59,6 +62,25 @@ library Errors {
      * @param itemType The seaport item type that is not supported.
      */
     error CreatePolicy_SeaportItemTypeNotSupported(SeaportItemType itemType);
+
+    /**
+     * @dev Thrown when an order contains a Seaport order type that is not supported.
+     *
+     * @param orderType The seaport order type that is not supported.
+     */
+    error CreatePolicy_SeaportOrderTypeNotSupported(SeaportOrderType orderType);
+
+    /**
+     * @dev Thrown when a `RentPayload` was signed with an expected order hash that was
+     *      not used when fulfilling the order.
+     *
+     * @param payloadOrderHash Order hash that the payload expects.
+     * @param seaportOrderHash Order hash of the order being fulfilled.
+     */
+    error CreatePolicy_InvalidPayloadForOrderHash(
+        bytes32 payloadOrderHash,
+        bytes32 seaportOrderHash
+    );
 
     /**
      * @dev Thrown when the total number of offer items in an order is zero.
@@ -151,8 +173,10 @@ library Errors {
 
     /**
      * @dev Thrown when an unauthorized address signs a create policy payloads.
+     *
+     * @param signer Address that signed the rent payload.
      */
-    error CreatePolicy_UnauthorizedCreatePolicySigner();
+    error CreatePolicy_UnauthorizedCreatePolicySigner(address signer);
 
     /**
      * @dev Thrown when creating a rental with an asset that does not exist

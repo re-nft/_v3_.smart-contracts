@@ -31,6 +31,8 @@ import {ProtocolAccount} from "@test/utils/Types.sol";
 
 import {OrderMetadata, OrderType, Hook} from "@src/libraries/RentalStructs.sol";
 
+import "forge-std/console.sol";
+
 // Sets up logic in the test engine related to order creation
 contract OrderCreator is BaseProtocol {
     using OfferItemLib for OfferItem;
@@ -66,12 +68,12 @@ contract OrderCreator is BaseProtocol {
         // use with the Create Policy and the protocol conduit contract
         OrderComponentsLib
             .empty()
-            .withOrderType(SeaportOrderType.FULL_RESTRICTED)
             .withZone(address(create))
             .withStartTime(block.timestamp)
             .withEndTime(block.timestamp + 100)
             .withSalt(123456789)
             .withConduitKey(conduitKey)
+            .withOrderType(SeaportOrderType.FULL_RESTRICTED)
             .saveDefault(STANDARD_ORDER_COMPONENTS);
 
         // for each test token, create a storage slot
@@ -271,14 +273,17 @@ contract OrderCreator is BaseProtocol {
         ConsiderationItem[] memory _considerationItems,
         OrderMetadata memory _metadata
     ) private view returns (Order memory order, bytes32 orderHash) {
+        // put offerer address on stack
+        address offerer = _offerer.addr;
+
         // Build the order components
         OrderComponents memory orderComponents = OrderComponentsLib
             .fromDefault(STANDARD_ORDER_COMPONENTS)
-            .withOfferer(_offerer.addr)
+            .withOfferer(offerer)
             .withOffer(_offerItems)
             .withConsideration(_considerationItems)
             .withZoneHash(create.getOrderMetadataHash(_metadata))
-            .withCounter(seaport.getCounter(_offerer.addr));
+            .withCounter(seaport.getCounter(offerer));
 
         // generate the order hash
         orderHash = seaport.getOrderHash(orderComponents);
@@ -400,6 +405,22 @@ contract OrderCreator is BaseProtocol {
 
     function resetOrderMetadata() internal {
         delete orderToCreate.metadata;
+    }
+
+    function withOrderType(SeaportOrderType orderType) internal {
+        // update the order type
+        OrderComponentsLib
+            .fromDefault(STANDARD_ORDER_COMPONENTS)
+            .withOrderType(orderType)
+            .saveDefault(STANDARD_ORDER_COMPONENTS);
+    }
+
+    function withSalt(uint256 salt) internal {
+        // update the salt for the order
+        OrderComponentsLib
+            .fromDefault(STANDARD_ORDER_COMPONENTS)
+            .withSalt(salt)
+            .saveDefault(STANDARD_ORDER_COMPONENTS);
     }
 
     /////////////////////////////////////////////////////////////////////////////////
