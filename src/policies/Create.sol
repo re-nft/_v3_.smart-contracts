@@ -15,9 +15,11 @@ import {ZoneInterface} from "@src/interfaces/IZone.sol";
 import {Kernel, Policy, Permissions, Keycode} from "@src/Kernel.sol";
 import {toKeycode, toRole} from "@src/libraries/KernelUtils.sol";
 import {RentalUtils} from "@src/libraries/RentalUtils.sol";
+import {Transferer} from "@src/libraries/Transferer.sol";
 import {Signer} from "@src/packages/Signer.sol";
 import {Zone} from "@src/packages/Zone.sol";
 import {Accumulator} from "@src/packages/Accumulator.sol";
+import {TokenReceiver} from "@src/packages/TokenReceiver.sol";
 import {Storage} from "@src/modules/Storage.sol";
 import {PaymentEscrow} from "@src/modules/PaymentEscrow.sol";
 import {
@@ -43,7 +45,8 @@ import "forge-std/console.sol";
  * @title Create
  * @notice Acts as an interface for all behavior related to creating a rental.
  */
-contract Create is Policy, Signer, Zone, Accumulator {
+contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
+    using Transferer for Item;
     using RentalUtils for Item;
     using RentalUtils for Item[];
     using RentalUtils for SpentItem;
@@ -644,11 +647,20 @@ contract Create is Policy, Signer, Zone, Accumulator {
             // Interaction: Update storage only if the order is a Base Order or Pay order.
             STORE.addRentals(orderHash, _convertToStatic(rentalAssetUpdates));
 
-            // Interaction: Increase the deposit value on the payment escrow so
-            // it knows how many tokens were sent to it.
+            // Interaction: Send tokens to their expected destinations. The rented assets
+            // will go to the rental wallet and the payments will go to the escrow.
             for (uint256 i = 0; i < items.length; ++i) {
-                if (items[i].isERC20()) {
-                    ESCRW.increaseDeposit(items[i].token, items[i].amount);
+                Item memory item = items[i];
+
+                if (item.isERC20()) {
+                    // Send tokens to the payment escrow.
+                    ESCRW.increaseDeposit(item.token, items[i].amount);
+                } else if (item.isERC721()) {
+                    // Send ERC721 to the rental wallet.
+                    items[i].transferERC721(order.rentalWallet);
+                } else if (item.isERC1155()) {
+                    // Send ERC1155 to the rental wallet.
+                    items[i].transferERC1155(order.rentalWallet);
                 }
             }
 
@@ -741,33 +753,9 @@ contract Create is Policy, Signer, Zone, Accumulator {
     }
 
     /**
-     * @dev Helper function to check that an execution performed by Seaport resulting
-     *      in the expected address receiving the asset.
-     *
-     * @param execution Execution that was performed by Seaport.
-     * @param expectedRecipient Address which should now own the rented asset.
-     */
-    function _checkExpectedRecipient(
-        ReceivedItem memory execution,
-        address expectedRecipient
-    ) internal pure {
-        if (execution.recipient != expectedRecipient) {
-            revert Errors.CreatePolicy_UnexpectedTokenRecipient(
-                execution.itemType,
-                execution.token,
-                execution.identifier,
-                execution.amount,
-                execution.recipient,
-                expectedRecipient
-            );
-        }
-    }
-
-    /**
      * @dev After a Seaport order has been executed, invariant checks are made to ensure
-     *      that all assets are owned by the correct addresses. More specifically, all
-     *      ERC20 tokens are sent to the payment escrow module, and all rental assets
-     *      are in the intended recipient's rental safe.
+     *      that all assets were sent to the correct address. More specifically, all
+     *      tokens must first be sent to the Create Policy.
      *
      * @param executions Each execution that was performed by Seaport.
      * @param expectedRentalSafe The intended recipient of the rental assets.
@@ -779,19 +767,15 @@ contract Create is Policy, Signer, Zone, Accumulator {
         for (uint256 i = 0; i < executions.length; ++i) {
             ReceivedItem memory execution = executions[i];
 
-            // ERC20 invariant where the recipient must be the payment escrow.
-            if (execution.isERC20()) {
-                _checkExpectedRecipient(execution, address(ESCRW));
-            }
-            // ERC721 and ERC1155 invariants where the recipient must
-            // be the expected rental safe.
-            else if (execution.isRental()) {
-                _checkExpectedRecipient(execution, expectedRentalSafe);
-            }
-            // Revert if unsupported item type.
-            else {
-                revert Errors.CreatePolicy_SeaportItemTypeNotSupported(
-                    execution.itemType
+            // All tokens must first be sent to the Create Policy.
+            if (execution.recipient != address(this)) {
+                revert Errors.CreatePolicy_UnexpectedTokenRecipient(
+                    execution.itemType,
+                    execution.token,
+                    execution.identifier,
+                    execution.amount,
+                    execution.recipient,
+                    address(this)
                 );
             }
         }
@@ -879,5 +863,18 @@ contract Create is Policy, Signer, Zone, Accumulator {
 
         // Return the selector of validateOrder as the magic value.
         validOrderMagicValue = ZoneInterface.validateOrder.selector;
+    }
+
+    /**
+     * @notice Returns whether the interface is supported.
+     *
+     * @param interfaceId The interface ID to check against.
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public pure override(Zone, TokenReceiver) returns (bool) {
+        return
+            Zone.supportsInterface(interfaceId) ||
+            TokenReceiver.supportsInterface(interfaceId);
     }
 }

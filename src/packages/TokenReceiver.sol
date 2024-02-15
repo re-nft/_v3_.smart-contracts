@@ -88,7 +88,7 @@ abstract contract TokenReceiver is
      *
      * @return whether the contract supports `interfaceId`.
      */
-    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public pure override returns (bool) {
         return
             interfaceId == type(IERC721TokenReceiver).interfaceId ||
             interfaceId == type(IERC1155TokenReceiver).interfaceId ||

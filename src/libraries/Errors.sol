@@ -321,6 +321,21 @@ library Errors {
     );
 
     /**
+     * @dev Thrown when a payment transfer from failed.
+     *
+     * @param token Address of the token being transferred.
+     * @param from  Address that the token was sent from.
+     * @param to    Address that the token was sent to.
+     * @param value Amount of the token sent.
+     */
+    error PaymentEscrowModule_PaymentTransferFromFailed(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    );
+
+    /**
      * @dev Thrown when attempting to make a payment of 0.
      */
     error PaymentEscrow_ZeroPayment();

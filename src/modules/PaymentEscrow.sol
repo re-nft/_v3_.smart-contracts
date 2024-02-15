@@ -91,7 +91,7 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
     }
 
     /**
-     * @dev Safe transfer for ERC20 tokens that do not consistently renturn true/false.
+     * @dev Safe `transfer` for ERC20 tokens that do not consistently renturn true/false.
      *
      * @param token Asset address which is being sent.
      * @param to    Destination address for the transfer.
@@ -114,6 +114,43 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
         // transfer.
         if (!success || (data.length != 0 && !abi.decode(data, (bool)))) {
             revert Errors.PaymentEscrowModule_PaymentTransferFailed(token, to, value);
+        }
+    }
+
+    /**
+     * @dev Safe `transferFrom` for ERC20 tokens that do not consistently renturn true/false.
+     *
+     * @param token Asset address which is being sent.
+     * @param from  Origin address for the transfer.
+     * @param to    Destination address for the transfer.
+     * @param value Amount of the asset being transferred.
+     */
+    function _safeTransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value)
+        );
+
+        // Because both reverting and returning false are allowed by the ERC20 standard
+        // to indicate a failed transfer, we must handle both cases.
+        //
+        // If success is false, the ERC20 contract reverted.
+        //
+        // If success is true, we must check if return data was provided. If no return
+        // data is provided, then no revert occurred. But, if return data is provided,
+        // then it must be decoded into a bool which will indicate the success of the
+        // transfer.
+        if (!success || (data.length != 0 && !abi.decode(data, (bool)))) {
+            revert Errors.PaymentEscrowModule_PaymentTransferFromFailed(
+                token,
+                from,
+                to,
+                value
+            );
         }
     }
 
@@ -362,13 +399,16 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
         address token,
         uint256 amount
     ) external onlyByProxy permissioned {
-        // Cannot accept a payment of zero.
+        // Check: Cannot accept a payment of zero.
         if (amount == 0) {
             revert Errors.PaymentEscrow_ZeroPayment();
         }
 
-        // Increase the deposit
+        // Effect: Increase the deposit
         _increaseDeposit(token, amount);
+
+        // Interaction: Transfer the funds from the caller to the escrow.
+        _safeTransferFrom(token, msg.sender, address(this), amount);
     }
 
     /**
