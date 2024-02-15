@@ -123,7 +123,7 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
      * @param endTimestamp Timestamp that the rental will end.
      * @param expectedLender Address of the initial lender in the order.
      */
-    function _validateRentalCanBeStoped(
+    function _validateRentalCanBeStopped(
         OrderType orderType,
         uint256 endTimestamp,
         address expectedLender
@@ -261,8 +261,16 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
      * @param order Rental order to stop.
      */
     function stopRent(RentalOrder calldata order) external {
+        // Compute the order hash.
+        bytes32 orderHash = _deriveRentalOrderHash(order);
+
+        // The order must exist to be deleted.
+        if (!STORE.orders(orderHash)) {
+            revert Errors.StopPolicy_OrderDoesNotExist(orderHash);
+        }
+
         // Check that the rental can be stopped.
-        _validateRentalCanBeStoped(order.orderType, order.endTimestamp, order.lender);
+        _validateRentalCanBeStopped(order.orderType, order.endTimestamp, order.lender);
 
         // Create an accumulator which will hold all of the rental asset updates, consisting of IDs and
         // the rented amount. From this point on, new memory cannot be safely allocated until the
@@ -282,10 +290,8 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
             }
         }
 
-        // Interaction: process hooks so they no longer exist for the renter.
-        if (order.hooks.length > 0) {
-            _removeHooks(order.hooks, order.items, order.rentalWallet);
-        }
+        // Effect: Remove rentals from storage by using the order hash.
+        STORE.removeRentals(orderHash, _convertToStatic(rentalAssetUpdates));
 
         // Interaction: Transfer rentals from the renter back to lender.
         _reclaimRentedItems(order);
@@ -293,11 +299,10 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
         // Interaction: Transfer ERC20 payments from the escrow contract to the respective recipients.
         ESCRW.settlePayment(order);
 
-        // Interaction: Remove rentals from storage by computing the order hash.
-        STORE.removeRentals(
-            _deriveRentalOrderHash(order),
-            _convertToStatic(rentalAssetUpdates)
-        );
+        // Interaction: process hooks so they no longer exist for the renter.
+        if (order.hooks.length > 0) {
+            _removeHooks(order.hooks, order.items, order.rentalWallet);
+        }
 
         // Emit rental order stopped.
         _emitRentalOrderStopped(order.seaportOrderHash, msg.sender);
@@ -309,23 +314,28 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
      * @param orders Array of rental orders to stop.
      */
     function stopRentBatch(RentalOrder[] calldata orders) external {
-        // Create an array of rental order hashes which will be removed from storage.
-        bytes32[] memory orderHashes = new bytes32[](orders.length);
-
-        // Create an accumulator which will hold all of the rental asset updates, consisting of IDs and
-        // the rented amount. From this point on, new memory cannot be safely allocated until the
-        // accumulator no longer needs to include elements.
-        bytes memory rentalAssetUpdates = new bytes(0);
-
         // Process each rental order.
         // Memory will become safe after this block.
         for (uint256 i = 0; i < orders.length; ++i) {
+            // Compute the order hash.
+            bytes32 orderHash = _deriveRentalOrderHash(orders[i]);
+
+            // The order must exist to be deleted.
+            if (!STORE.orders(orderHash)) {
+                revert Errors.StopPolicy_OrderDoesNotExist(orderHash);
+            }
+
             // Check that the rental can be stopped.
-            _validateRentalCanBeStoped(
+            _validateRentalCanBeStopped(
                 orders[i].orderType,
                 orders[i].endTimestamp,
                 orders[i].lender
             );
+
+            // Create an accumulator which will hold all of the rental asset updates, consisting of IDs and
+            // the rented amount. From this point on, new memory cannot be safely allocated until the
+            // accumulator no longer needs to include elements.
+            bytes memory rentalAssetUpdates = new bytes(0);
 
             // Check if each item in the order is a rental. If so, then generate the rental asset update.
             for (uint256 j = 0; j < orders[i].items.length; ++j) {
@@ -339,25 +349,22 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
                 }
             }
 
-            // Add the order hash to an array.
-            orderHashes[i] = _deriveRentalOrderHash(orders[i]);
+            // Effect: Remove rentals from storage by using the order hash.
+            STORE.removeRentals(orderHash, _convertToStatic(rentalAssetUpdates));
+
+            // Interaction: Transfer rentals from the renter back to lender.
+            _reclaimRentedItems(orders[i]);
+
+            // Interaction: Transfer ERC20 payments from the escrow contract to the respective recipients.
+            ESCRW.settlePayment(orders[i]);
 
             // Interaction: Process hooks so they no longer exist for the renter.
             if (orders[i].hooks.length > 0) {
                 _removeHooks(orders[i].hooks, orders[i].items, orders[i].rentalWallet);
             }
 
-            // Interaction: Transfer rental assets from the renter back to lender.
-            _reclaimRentedItems(orders[i]);
-
             // Emit rental order stopped.
-            _emitRentalOrderStopped(orderHashes[i], msg.sender);
+            _emitRentalOrderStopped(orderHash, msg.sender);
         }
-
-        // Interaction: Transfer ERC20 payments from the escrow contract to the respective recipients.
-        ESCRW.settlePaymentBatch(orders);
-
-        // Interaction: Remove all rentals from storage.
-        STORE.removeRentalsBatch(orderHashes, _convertToStatic(rentalAssetUpdates));
     }
 }

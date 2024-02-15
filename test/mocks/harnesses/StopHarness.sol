@@ -16,12 +16,12 @@ import {
 contract StopHarness is Stop {
     constructor(Kernel kernel_) Stop(kernel_) {}
 
-    function validateRentalCanBeStoped(
+    function validateRentalCanBeStopped(
         OrderType orderType,
         uint256 endTimestamp,
         address expectedLender
     ) external view {
-        _validateRentalCanBeStoped(orderType, endTimestamp, expectedLender);
+        _validateRentalCanBeStopped(orderType, endTimestamp, expectedLender);
     }
 
     function reclaimRentedItems(RentalOrder memory order) external {

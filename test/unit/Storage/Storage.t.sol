@@ -146,33 +146,6 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         STORE.removeRentals(RENTAL_ORDER_HASH, rentalAssets);
     }
 
-    function test_Reverts_RemoveRentals_NonExistentOrderHash() public {
-        // Create a rental asset array
-        RentalAssetUpdate[] memory rentalAssets = new RentalAssetUpdate[](1);
-
-        // create the rental ID
-        RentalId rentalId = RentalUtils.getItemPointer(
-            address(alice.safe),
-            address(erc721s[0]),
-            0
-        );
-
-        // populate the array
-        rentalAssets[0] = RentalAssetUpdate(rentalId, 1);
-
-        // impersonate an address with permissions
-        vm.prank(address(stop));
-
-        // Expect revert because the order does not exist
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.StorageModule_OrderDoesNotExist.selector,
-                RENTAL_ORDER_HASH
-            )
-        );
-        STORE.removeRentals(RENTAL_ORDER_HASH, rentalAssets);
-    }
-
     function test_Success_RemoveRentalsBatch() public {
         // create some rental IDs
         RentalId rentalIdFirst = RentalUtils.getItemPointer(
@@ -285,37 +258,6 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
             abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
         );
         STORE.removeRentalsBatch(rentalOrderHashes, rentalAssetsCombined);
-    }
-
-    function test_Reverts_RemoveRentalsBatch_NonExistentOrderHash() public {
-        // Create a rental asset array
-        RentalAssetUpdate[] memory rentalAssets = new RentalAssetUpdate[](1);
-
-        // create the rental ID
-        RentalId rentalId = RentalUtils.getItemPointer(
-            address(alice.safe),
-            address(erc721s[0]),
-            0
-        );
-
-        // populate the array
-        rentalAssets[0] = RentalAssetUpdate(rentalId, 1);
-
-        // Create a rental order hash array
-        bytes32[] memory rentalOrderHashes = new bytes32[](1);
-        rentalOrderHashes[0] = RENTAL_ORDER_HASH;
-
-        // impersonate an address with permissions
-        vm.prank(address(stop));
-
-        // Expect revert because the order does not exist
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.StorageModule_OrderDoesNotExist.selector,
-                RENTAL_ORDER_HASH
-            )
-        );
-        STORE.removeRentalsBatch(rentalOrderHashes, rentalAssets);
     }
 
     function test_Success_AddRentalSafe() public {
