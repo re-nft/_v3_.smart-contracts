@@ -48,14 +48,17 @@ uint256 constant e1155_safe_batch_transfer_from_token_id_offset = 0x64;
 //                  Gnosis Safe Function Selectors And Offsets                 //
 /////////////////////////////////////////////////////////////////////////////////
 
-// bytes4(keccak256("setGuard(address)"));
+// bytes4(keccak256("setGuard(address)"))
 bytes4 constant gnosis_safe_set_guard_selector = 0xe19a9dd9;
 
-// bytes4(keccak256("enableModule(address)"));
+// bytes4(keccak256("enableModule(address)"))
 bytes4 constant gnosis_safe_enable_module_selector = 0x610b5925;
 
-// bytes4(keccak256("disableModule(address,address)"));
+// bytes4(keccak256("disableModule(address,address)"))
 bytes4 constant gnosis_safe_disable_module_selector = 0xe009cfde;
+
+// bytes4(keccak256("setFallbackHandler(address)"))
+bytes4 constant gnosis_safe_set_fallback_handler_selector = 0xf08a0323;
 
 // Module offsets for gnosis safe
 uint256 constant gnosis_safe_enable_module_offset = 0x24;

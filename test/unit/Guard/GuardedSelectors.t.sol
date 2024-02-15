@@ -5,6 +5,7 @@ import {IERC721} from "@openzeppelin-contracts/token/ERC721/IERC721.sol";
 import {IERC1155} from "@openzeppelin-contracts/token/ERC1155/IERC1155.sol";
 import {GuardManager} from "@safe-contracts/base/GuardManager.sol";
 import {ModuleManager} from "@safe-contracts/base/ModuleManager.sol";
+import {FallbackManager} from "@safe-contracts/base/FallbackManager.sol";
 
 import {
     e721_transfer_from_selector,
@@ -16,7 +17,8 @@ import {
     shared_set_approval_for_all_selector,
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
-    gnosis_safe_disable_module_selector
+    gnosis_safe_disable_module_selector,
+    gnosis_safe_set_fallback_handler_selector
 } from "@src/libraries/RentalConstants.sol";
 
 import {BaseTestWithoutEngine} from "@test/BaseTest.sol";
@@ -86,5 +88,12 @@ contract Guard_GuardedSelectors_Unit_Test is BaseTestWithoutEngine {
 
     function test_Success_GnosisSafe_SetGuard() public {
         assertEq(gnosis_safe_set_guard_selector, GuardManager.setGuard.selector);
+    }
+
+    function test_Success_GnosisSafe_SetFallbackHandler() public {
+        assertEq(
+            gnosis_safe_set_fallback_handler_selector,
+            FallbackManager.setFallbackHandler.selector
+        );
     }
 }

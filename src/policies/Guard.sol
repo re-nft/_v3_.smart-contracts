@@ -26,6 +26,7 @@ import {
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
     gnosis_safe_disable_module_selector,
+    gnosis_safe_set_fallback_handler_selector,
     gnosis_safe_enable_module_offset,
     gnosis_safe_disable_module_offset
 } from "@src/libraries/RentalConstants.sol";
@@ -287,6 +288,13 @@ contract Guard is Policy, BaseGuard {
             if (selector == gnosis_safe_set_guard_selector) {
                 revert Errors.GuardPolicy_UnauthorizedSelector(
                     gnosis_safe_set_guard_selector
+                );
+            }
+
+            // Revert if the `setFallbackHandler` selector is specified.
+            if (selector == gnosis_safe_set_fallback_handler_selector) {
+                revert Errors.GuardPolicy_UnauthorizedSelector(
+                    gnosis_safe_set_fallback_handler_selector
                 );
             }
         }

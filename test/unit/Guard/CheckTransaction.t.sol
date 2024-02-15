@@ -14,7 +14,8 @@ import {
     shared_set_approval_for_all_selector,
     gnosis_safe_set_guard_selector,
     gnosis_safe_enable_module_selector,
-    gnosis_safe_disable_module_selector
+    gnosis_safe_disable_module_selector,
+    gnosis_safe_set_fallback_handler_selector
 } from "@src/libraries/RentalConstants.sol";
 import {RentalUtils} from "@src/libraries/RentalUtils.sol";
 import {RentalAssetUpdate, RentalId} from "@src/libraries/RentalStructs.sol";
@@ -596,6 +597,22 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
             address(mockTarget),
             gnosis_safe_set_guard_selector,
             setGuardCalldata
+        );
+    }
+
+    function test_Reverts_CheckTransaction_Gnosis_SetFallbackHandler() public {
+        // Build up the `setFallbackHandler(address)` calldata
+        bytes memory setFallbackHandlerCalldata = abi.encodeWithSelector(
+            gnosis_safe_set_fallback_handler_selector,
+            address(mockTarget)
+        );
+
+        // Expect revert because of an unauthorized function selector
+        _checkTransactionRevertUnauthorizedSelector(
+            address(this),
+            address(mockTarget),
+            gnosis_safe_set_fallback_handler_selector,
+            setFallbackHandlerCalldata
         );
     }
 }
