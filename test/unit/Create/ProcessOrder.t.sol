@@ -291,7 +291,11 @@ contract Create_ProcessOrder_Unit_Test is BaseTestWithoutEngine {
         });
 
         // process the PAYEE order consideration items
-        createHarness.processPayeeOrderConsideration(consideration);
+        createHarness.processPayeeOrderConsideration(
+            new Item[](consideration.length),
+            consideration,
+            0
+        );
     }
 
     function test_Reverts_ProcessPayeeOrderConsideration_TotalRentalsZero() public {
@@ -309,7 +313,11 @@ contract Create_ProcessOrder_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.CreatePolicy_ItemCountZero.selector, 0, 1)
         );
-        createHarness.processPayeeOrderConsideration(consideration);
+        createHarness.processPayeeOrderConsideration(
+            new Item[](consideration.length),
+            consideration,
+            0
+        );
     }
 
     function test_Reverts_ProcessPayeeOrderConsideration_TotalPaymentsZero() public {
@@ -327,7 +335,11 @@ contract Create_ProcessOrder_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.CreatePolicy_ItemCountZero.selector, 1, 0)
         );
-        createHarness.processPayeeOrderConsideration(consideration);
+        createHarness.processPayeeOrderConsideration(
+            new Item[](consideration.length),
+            consideration,
+            0
+        );
     }
 
     function test_Reverts_ProcessPayeeOrderConsideration_SeaportItemTypeNotSupported()
@@ -350,6 +362,10 @@ contract Create_ProcessOrder_Unit_Test is BaseTestWithoutEngine {
                 SeaportItemType.ERC1155_WITH_CRITERIA
             )
         );
-        createHarness.processPayeeOrderConsideration(consideration);
+        createHarness.processPayeeOrderConsideration(
+            new Item[](consideration.length),
+            consideration,
+            0
+        );
     }
 }

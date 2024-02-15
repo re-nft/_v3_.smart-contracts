@@ -7,12 +7,14 @@ contract BaseProtocol is AccountCreator {
     // This is an explicit entrypoint for the setup and deployment of the V3 protocol.
     //
     // It contains logic for:
+    // - setup of mock tokens to interact with the protocol
     // - setup of the v3 protocol architecture
     // - setup of test accounts to interact with the protocol
     //
     // The inheritance chain is as follows:
     // BaseExternal
-    // --> Protocol
-    //     --> AccountCreator
-    //         --> BaseProtocol
+    // --> TokenCreator
+    //     --> Protocol
+    //         --> AccountCreator
+    //             --> BaseProtocol
 }

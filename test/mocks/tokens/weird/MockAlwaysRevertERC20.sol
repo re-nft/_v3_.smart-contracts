@@ -21,7 +21,11 @@ contract MockAlwaysRevertERC20 is ERC20 {
         return false;
     }
 
-    function transferFrom(address, address, uint256) public pure override returns (bool) {
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) public virtual override returns (bool) {
         require(false, "transferFrom() revert");
 
         return false;

@@ -154,6 +154,18 @@ library Errors {
      */
     error CreatePolicy_UnauthorizedCreatePolicySigner();
 
+    /**
+     * @dev Thrown when creating a rental with an asset that does not exist
+     *      in the whitelist.
+     */
+    error CreatePolicy_AssetNotWhitelisted(address token);
+
+    /**
+     * @dev Thrown when creating a rental with a payment that does not exist
+     *      in the whitelist.
+     */
+    error CreatePolicy_PaymentNotWhitelisted(address token);
+
     /////////////////////////////////////////////////////////////////////////////////
     //                                  Stop Policy                                //
     /////////////////////////////////////////////////////////////////////////////////

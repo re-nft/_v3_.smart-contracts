@@ -68,7 +68,7 @@ contract Admin is Policy {
         onlyKernel
         returns (Permissions[] memory requests)
     {
-        requests = new Permissions[](9);
+        requests = new Permissions[](11);
         requests[0] = Permissions(
             toKeycode("STORE"),
             STORE.toggleWhitelistExtension.selector
@@ -77,14 +77,22 @@ contract Admin is Policy {
             toKeycode("STORE"),
             STORE.toggleWhitelistDelegate.selector
         );
-        requests[2] = Permissions(toKeycode("STORE"), STORE.upgrade.selector);
-        requests[3] = Permissions(toKeycode("STORE"), STORE.freeze.selector);
-        requests[4] = Permissions(toKeycode("STORE"), STORE.setMaxRentDuration.selector);
+        requests[2] = Permissions(
+            toKeycode("STORE"),
+            STORE.toggleWhitelistAsset.selector
+        );
+        requests[3] = Permissions(
+            toKeycode("STORE"),
+            STORE.toggleWhitelistPayment.selector
+        );
+        requests[4] = Permissions(toKeycode("STORE"), STORE.upgrade.selector);
+        requests[5] = Permissions(toKeycode("STORE"), STORE.freeze.selector);
+        requests[6] = Permissions(toKeycode("STORE"), STORE.setMaxRentDuration.selector);
 
-        requests[5] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
-        requests[6] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
-        requests[7] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
-        requests[8] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
+        requests[7] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
+        requests[8] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
+        requests[9] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
+        requests[10] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +124,32 @@ contract Admin is Policy {
         bool isEnabled
     ) external onlyRole("ADMIN_ADMIN") {
         STORE.toggleWhitelistExtension(extension, isEnabled);
+    }
+
+    /**
+     * @notice Toggles whether a token can be rented.
+     *
+     * @param asset     Token address which can be rented via the protocol.
+     * @param isEnabled Whether the token is whitelisted for rent.
+     */
+    function toggleWhitelistAsset(
+        address asset,
+        bool isEnabled
+    ) external onlyRole("ADMIN_ADMIN") {
+        STORE.toggleWhitelistAsset(asset, isEnabled);
+    }
+
+    /**
+     * @notice Toggles whether a token can be used as a payment.
+     *
+     * @param payment   Token address which can be used as payment via the protocol.
+     * @param isEnabled Whether the token is whitelisted for payment.
+     */
+    function toggleWhitelistPayment(
+        address payment,
+        bool isEnabled
+    ) external onlyRole("ADMIN_ADMIN") {
+        STORE.toggleWhitelistPayment(payment, isEnabled);
     }
 
     /**
@@ -177,7 +211,7 @@ contract Admin is Policy {
 
     /**
      * @notice Sets the maximum rent duration.
-     * 
+     *
      * @param newDuration The new maximum rent duration.
      */
     function setMaxRentDuration(uint256 newDuration) external onlyRole("ADMIN_ADMIN") {

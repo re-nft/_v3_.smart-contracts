@@ -500,6 +500,50 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         STORE.toggleWhitelistExtension(TEST_ADDR_1, true);
     }
 
+    function test_Success_ToggleWhitelistAsset() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // enable this address to be used as a rented asset
+        STORE.toggleWhitelistAsset(TEST_ADDR_1, true);
+
+        // assert the address is whitelisted
+        assertTrue(STORE.whitelistedAssets(TEST_ADDR_1));
+    }
+
+    function test_Reverts_ToggleWhitelistAsset_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.toggleWhitelistAsset(TEST_ADDR_1, true);
+    }
+
+    function test_Success_ToggleWhitelistPayment() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // enable this address to be used as a rented asset
+        STORE.toggleWhitelistPayment(TEST_ADDR_1, true);
+
+        // assert the address is whitelisted
+        assertTrue(STORE.whitelistedPayments(TEST_ADDR_1));
+    }
+
+    function test_Reverts_ToggleWhitelistPayment_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.toggleWhitelistPayment(TEST_ADDR_1, true);
+    }
+
     function test_Success_SetMaxRentDuration() public {
         // impersonate an address with permissions
         vm.prank(address(admin));
