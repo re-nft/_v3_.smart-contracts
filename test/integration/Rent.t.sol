@@ -58,7 +58,7 @@ contract TestRent is BaseTest {
         assertEq(STORE.orders(rentalOrderHash), true);
 
         // assert that the token is in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), true);
+        assertGt(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), 0);
 
         // assert that the fulfiller made a payment
         assertEq(erc20s[0].balanceOf(bob.addr), uint256(9900));
@@ -158,7 +158,7 @@ contract TestRent is BaseTest {
         assertEq(STORE.orders(rentalOrderHash), true);
 
         // assert that the token is in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc1155s[0]), 0), true);
+        assertGt(STORE.isRentedOut(address(bob.safe), address(erc1155s[0]), 0), 0);
 
         // assert that the fulfiller made a payment
         assertEq(erc20s[0].balanceOf(bob.addr), uint256(9900));
@@ -225,7 +225,7 @@ contract TestRent is BaseTest {
             assertEq(STORE.orders(rentalOrderHash), true);
 
             // assert that the rental order was stored
-            assertEq(STORE.isRentedOut(address(dan.safe), address(erc721s[0]), i), true);
+            assertGt(STORE.isRentedOut(address(dan.safe), address(erc721s[0]), i), 0);
 
             // assert that the ERC721 is in the rental wallet of the fulfiller
             assertEq(erc721s[0].ownerOf(i), address(dan.safe));
@@ -313,7 +313,7 @@ contract TestRent is BaseTest {
         assertEq(STORE.orders(payeeRentalOrderHash), false);
 
         // assert that the token is in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), true);
+        assertGt(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), 0);
 
         // assert that the offerer made a payment
         assertEq(erc20s[0].balanceOf(alice.addr), uint256(9900));

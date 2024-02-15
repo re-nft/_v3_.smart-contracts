@@ -50,7 +50,7 @@ contract TestStopRent is BaseTest {
         assertEq(STORE.orders(orderHash), false);
 
         // assert that the token is no longer rented out in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), false);
+        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), 0);
 
         // assert that the ERC721 is back to its original owner
         assertEq(erc721s[0].ownerOf(0), address(alice.addr));
@@ -140,7 +140,7 @@ contract TestStopRent is BaseTest {
         assertEq(STORE.orders(payRentalOrderHash), false);
 
         // assert that the token is no longer rented out in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), false);
+        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), 0);
 
         // assert that the ERC721 is back to its original owner
         assertEq(erc721s[0].ownerOf(0), address(alice.addr));
@@ -230,7 +230,7 @@ contract TestStopRent is BaseTest {
         assertEq(STORE.orders(payRentalOrderHash), false);
 
         // assert that the token is no longer rented out in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), false);
+        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), 0);
 
         // assert that the ERC721 is back to its original owner
         assertEq(erc721s[0].ownerOf(0), address(alice.addr));
@@ -320,7 +320,7 @@ contract TestStopRent is BaseTest {
         assertEq(STORE.orders(payRentalOrderHash), false);
 
         // assert that the token is no longer rented out in storage
-        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), false);
+        assertEq(STORE.isRentedOut(address(bob.safe), address(erc721s[0]), 0), 0);
 
         // assert that the ERC721 is back to its original owner
         assertEq(erc721s[0].ownerOf(0), address(alice.addr));

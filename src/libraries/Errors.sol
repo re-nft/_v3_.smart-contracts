@@ -120,10 +120,10 @@ library Errors {
     error CreatePolicy_UnexpectedPaymentEscrowRecipient(address paymentRecipient);
 
     /**
-     * @dev Thrown when a rent duration that is too long is specified. 
+     * @dev Thrown when a rent duration that is too long is specified.
      */
     error CreatePolicy_RentDurationTooLong(uint256 rentDuration);
-    
+
     /**
      * @dev Thrown when a rent duration of zero is specified.
      */
@@ -196,6 +196,21 @@ library Errors {
      * @param selector Four byte selector of the call.
      */
     error GuardPolicy_UnauthorizedSelector(bytes4 selector);
+
+    /**
+     * @dev Thrown when attempting to call a restricted function selector with an amount
+     *      that would result in less tokens being left in the safe than are actively
+     *      rented out.
+     *
+     * @param selector Four byte selector of the call.
+     * @param rentedAmount Amount that is actively rented.
+     * @param remainingBalance Invalid remaining balance if the call had succeeded.
+     */
+    error GuardPolicy_UnauthorizedAssetAmount(
+        bytes4 selector,
+        uint256 rentedAmount,
+        uint256 remainingBalance
+    );
 
     /**
      * @dev Thrown when an extension is not whitelisted.

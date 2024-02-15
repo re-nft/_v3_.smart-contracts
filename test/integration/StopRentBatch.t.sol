@@ -61,7 +61,7 @@ contract TestStopRentBatch is BaseTest {
             // assert that the token is no longer rented out in storage
             assertEq(
                 STORE.isRentedOut(rentalOrders[i].rentalWallet, address(erc721s[0]), i),
-                false
+                0
             );
 
             // assert that the ERC721 is back to its original owner
@@ -178,7 +178,7 @@ contract TestStopRentBatch is BaseTest {
                     address(erc721s[0]),
                     i
                 ),
-                false
+                0
             );
 
             // assert that the ERC721 is back to its original owner

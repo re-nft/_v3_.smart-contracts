@@ -2,8 +2,11 @@
 pragma solidity ^0.8.20;
 
 import {ERC721} from "@openzeppelin-contracts/token/ERC721/ERC721.sol";
+import {
+    ERC721Burnable
+} from "@openzeppelin-contracts/token/ERC721/extensions/ERC721Burnable.sol";
 
-contract MockERC721 is ERC721 {
+contract MockERC721 is ERC721Burnable {
     uint256 private _tokenIds;
     string private _tokenURI;
 
@@ -21,12 +24,9 @@ contract MockERC721 is ERC721 {
         _tokenIds++;
     }
 
-    function burn(uint256 tokenId) public {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: burn caller is not owner nor approved"
-        );
-        _burn(tokenId);
+    function mint(address to, uint256 id) public {
+        _mint(to, id);
+        _tokenIds++;
     }
 
     function setTokenURI(string memory tokenURI) public {
