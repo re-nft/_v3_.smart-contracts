@@ -148,7 +148,7 @@ abstract contract Signer {
         // Derive and return the hook as specified by EIP-712.
         return
             keccak256(
-                abi.encode(_HOOK_TYPEHASH, hook.target, hook.itemIndex, hook.extraData)
+                abi.encode(_HOOK_TYPEHASH, hook.target, hook.itemIndex, keccak256(hook.extraData))
             );
     }
 
@@ -188,6 +188,7 @@ abstract contract Signer {
                     order.orderType,
                     order.lender,
                     order.renter,
+                    order.rentalWallet,
                     order.startTimestamp,
                     order.endTimestamp
                 )
@@ -232,8 +233,10 @@ abstract contract Signer {
             keccak256(
                 abi.encode(
                     _ORDER_METADATA_TYPEHASH,
+                    metadata.orderType,
                     metadata.rentDuration,
-                    keccak256(abi.encodePacked(hookHashes))
+                    keccak256(abi.encodePacked(hookHashes)),
+                    keccak256(metadata.emittedExtraData)
                 )
             );
     }
@@ -371,7 +374,7 @@ abstract contract Signer {
 
         // Derive the RentalOrder type hash using the corresponding type string.
         rentalOrderTypeHash = keccak256(
-            abi.encode(rentalOrderTypeString, hookTypeString, itemTypeString)
+            abi.encodePacked(rentalOrderTypeString, hookTypeString, itemTypeString)
         );
 
         {
@@ -394,8 +397,8 @@ abstract contract Signer {
             rentPayloadTypeHash = keccak256(
                 abi.encodePacked(
                     rentPayloadTypeString,
-                    orderMetadataTypeString,
-                    orderFulfillmentTypeString
+                    orderFulfillmentTypeString,
+                    orderMetadataTypeString
                 )
             );
 
