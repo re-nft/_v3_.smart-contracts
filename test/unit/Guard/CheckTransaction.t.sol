@@ -79,7 +79,6 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         );
 
         // check the transaction
-
         _checkTransaction(from, to, transactionCalldata);
     }
 
@@ -363,9 +362,10 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         // enable this address to be added as a module by rental safes
         admin.toggleWhitelistExtension(address(mockTarget), true);
 
-        // Build up the `disableModule(address)` calldata
+        // Build up the `disableModule(address,address)` calldata
         bytes memory disableModuleCalldata = abi.encodeWithSelector(
             gnosis_safe_disable_module_selector,
+            address(0x01), // sentinel
             address(mockTarget)
         );
 
@@ -551,9 +551,10 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
     }
 
     function test_Reverts_CheckTransaction_Gnosis_DisableModule() public {
-        // Build up the `disableModule(address)` calldata
+        // Build up the `disableModule(address,address)` calldata
         bytes memory disableModuleCalldata = abi.encodeWithSelector(
             gnosis_safe_disable_module_selector,
+            address(0x01), // sentinel
             address(mockTarget)
         );
 
