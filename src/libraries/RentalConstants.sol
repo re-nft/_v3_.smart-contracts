@@ -52,6 +52,7 @@ bytes4 constant e1155_burn_batch_selector = 0x6b20c454;
 
 // Token ID offsets for ERC-1155
 uint256 constant e1155_safe_transfer_from_token_id_offset = 0x64;
+uint256 constant e1155_safe_transfer_from_amount_offset = 0x84;
 uint256 constant e1155_burn_offset = 0x44;
 uint256 constant e1155_burn_amount_offset = 0x64;
 

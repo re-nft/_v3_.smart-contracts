@@ -27,6 +27,7 @@ import {
     e1155_burn_selector,
     e1155_burn_batch_selector,
     e1155_safe_transfer_from_token_id_offset,
+    e1155_safe_transfer_from_amount_offset,
     e1155_burn_offset,
     e1155_burn_amount_offset,
     gnosis_safe_set_guard_selector,
@@ -293,13 +294,18 @@ contract Guard is Policy, BaseGuard {
                 _loadValueFromCalldata(data, e1155_safe_transfer_from_token_id_offset)
             );
 
-            // Check if the selector is allowed.
-            _revertSelectorOnActiveRental(selector, from, to, tokenId);
+            // Load the token amount from calldata
+            uint256 amountToRemove = uint256(
+                _loadValueFromCalldata(data, e1155_safe_transfer_from_amount_offset)
+            );
+
+            // Check if the amount leaving the safe is allowed.
+            _revertSelectorOnValueOverflow(selector, from, to, tokenId, amountToRemove);
         } else if (selector == e1155_burn_selector) {
             // Load the token ID from calldata.
             uint256 tokenId = uint256(_loadValueFromCalldata(data, e1155_burn_offset));
 
-            // Load the token amoutn from calldata
+            // Load the token amount from calldata
             uint256 amountToRemove = uint256(
                 _loadValueFromCalldata(data, e1155_burn_amount_offset)
             );
