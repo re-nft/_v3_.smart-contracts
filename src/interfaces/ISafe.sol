@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import {Safe} from "@safe-contracts/Safe.sol";
 import {Enum} from "@safe-contracts/common/Enum.sol";
 
 /**
@@ -182,4 +183,15 @@ interface ISafe {
      * @return nonce The nonce of the current transaction
      */
     function nonce() external view returns (uint256 nonce);
+
+    /**
+     * @notice Returns the hash of a message that can be signed by safe owners.
+     *
+     * @param safe    Safe which the message is targeted for.
+     * @param message Message which will be signed.
+     */
+    function getMessageHashForSafe(
+        Safe safe,
+        bytes memory message
+    ) external view returns (bytes32 messageHash);
 }
