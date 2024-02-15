@@ -262,6 +262,12 @@ library Errors {
      */
     error GuardPolicy_UnauthorizedDelegateCall(address to);
 
+    /**
+     * @dev Thrown when attempting to execute a transaction throught a Guard Policy that
+     *      is no longer active.
+     */
+    error GuardPolicy_Deactivated();
+
     /////////////////////////////////////////////////////////////////////////////////
     //                               Fallback Policy                               //
     /////////////////////////////////////////////////////////////////////////////////

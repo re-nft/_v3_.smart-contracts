@@ -403,6 +403,11 @@ contract Guard is Policy, BaseGuard {
         bytes memory,
         address
     ) external override {
+        // Check if this guard is active for the protocol.
+        if (!isActive) {
+            revert Errors.GuardPolicy_Deactivated();
+        }
+
         // Disallow transactions that use delegate call, unless explicitly
         // permitted by the protocol.
         if (operation == Enum.Operation.DelegateCall && !STORE.whitelistedDelegates(to)) {
@@ -411,10 +416,10 @@ contract Guard is Policy, BaseGuard {
 
         // Fetch the hook to interact with for this transaction.
         address hook = STORE.contractToHook(to);
-        bool isActive = STORE.hookOnTransaction(hook);
+        bool hookIsActive = STORE.hookOnTransaction(hook);
 
         // If a hook exists and is enabled, forward the control flow to the hook.
-        if (hook != address(0) && isActive) {
+        if (hook != address(0) && hookIsActive) {
             _forwardToHook(hook, msg.sender, to, value, data);
         }
         // If no hook exists, use basic tx check.
