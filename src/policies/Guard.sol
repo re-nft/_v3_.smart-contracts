@@ -361,7 +361,7 @@ contract Guard is Policy, BaseGuard {
                 );
             }
 
-            // Revert if the `setFallbackHandler` selector is specified.abi
+            // Revert if the `setFallbackHandler` selector is specified.
             if (selector == gnosis_safe_set_fallback_handler_selector) {
                 revert Errors.GuardPolicy_UnauthorizedSelector(
                     gnosis_safe_set_fallback_handler_selector
