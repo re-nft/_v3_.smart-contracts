@@ -403,11 +403,6 @@ contract Guard is Policy, BaseGuard {
             revert Errors.GuardPolicy_UnauthorizedDelegateCall(to);
         }
 
-        // Require that a function selector exists.
-        if (data.length < 4) {
-            revert Errors.GuardPolicy_FunctionSelectorRequired();
-        }
-
         // Fetch the hook to interact with for this transaction.
         address hook = STORE.contractToHook(to);
         bool isActive = STORE.hookOnTransaction(hook);

@@ -149,16 +149,6 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         );
     }
 
-    function test_Reverts_CheckTransaction_NotEnoughData() public {
-        // expect revert because the data is not long enough
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.GuardPolicy_FunctionSelectorRequired.selector)
-        );
-
-        // check the transaction
-        _checkTransaction(address(this), address(mockTarget), hex"a0b1c2");
-    }
-
     function test_Success_CheckTransaction_ForwardToHook() public {
         // deploy a mock hook contract
         MockHook_Success hook = new MockHook_Success();

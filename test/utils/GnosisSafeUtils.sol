@@ -19,6 +19,7 @@ library SafeUtils {
         address safe,
         Enum.Operation operation,
         address to,
+        uint256 value,
         bytes memory transaction,
         bytes memory signature,
         bytes memory expectedError
@@ -31,7 +32,7 @@ library SafeUtils {
         // execute the transaction
         ISafe(safe).execTransaction(
             to,
-            0 ether,
+            value,
             transaction,
             operation,
             0 ether,
@@ -50,6 +51,7 @@ library SafeUtils {
         Enum.Operation operation,
         uint256 ownerPrivateKey,
         address to,
+        uint256 value,
         bytes memory transaction
     ) private view returns (bytes memory transactionSignature) {
         // get the safe nonce
@@ -58,7 +60,7 @@ library SafeUtils {
         // get the eip712 compatible transaction hash that the safe owner will sign
         bytes32 transactionHash = ISafe(safe).getTransactionHash(
             to,
-            0 ether,
+            value,
             transaction,
             operation,
             0 ether,
@@ -110,6 +112,7 @@ library SafeUtils {
             Enum.Operation.Call,
             ownerPrivateKey,
             to,
+            0 ether,
             transaction
         );
     }
@@ -127,6 +130,26 @@ library SafeUtils {
             Enum.Operation.DelegateCall,
             ownerPrivateKey,
             to,
+            0 ether,
+            transaction
+        );
+    }
+
+    // Takes a call transaction to execute with ETH value, hashes it according to EIP-712
+    // for the safe, and signs with owner private key
+    function signTransactionWithValue(
+        address safe,
+        uint256 ownerPrivateKey,
+        address to,
+        uint256 value,
+        bytes memory transaction
+    ) internal view returns (bytes memory transactionSignature) {
+        transactionSignature = _signTransaction(
+            safe,
+            Enum.Operation.Call,
+            ownerPrivateKey,
+            to,
+            value,
             transaction
         );
     }
@@ -142,6 +165,26 @@ library SafeUtils {
             safe,
             Enum.Operation.Call,
             to,
+            0 ether,
+            transaction,
+            signature,
+            bytes("")
+        );
+    }
+
+    // Helper function for executing a call transaction that passes ETH with it
+    function executeTransactionWithValue(
+        address safe,
+        address to,
+        uint256 value,
+        bytes memory transaction,
+        bytes memory signature
+    ) internal {
+        _executeTransaction(
+            safe,
+            Enum.Operation.Call,
+            to,
+            value,
             transaction,
             signature,
             bytes("")
@@ -160,6 +203,7 @@ library SafeUtils {
             safe,
             Enum.Operation.Call,
             to,
+            0 ether,
             transaction,
             signature,
             expectedError
@@ -177,6 +221,7 @@ library SafeUtils {
             safe,
             Enum.Operation.DelegateCall,
             to,
+            0 ether,
             transaction,
             signature,
             bytes("")
@@ -195,6 +240,7 @@ library SafeUtils {
             safe,
             Enum.Operation.DelegateCall,
             to,
+            0 ether,
             transaction,
             signature,
             expectedError
