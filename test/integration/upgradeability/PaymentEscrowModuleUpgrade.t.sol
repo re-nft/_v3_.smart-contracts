@@ -33,10 +33,11 @@ contract PaymentEscrowUpgrade_Upgradeability_Integration_Test is BaseTest {
         address originalProxy = address(ESCRW);
         address originalImplementation = address(paymentEscrowImplementation);
 
-        // impersonate the create policy
-        vm.prank(address(create));
+        // mint some tokens to the create policy
+        erc20s[0].mint(address(create), 1);
 
         // increase the deposit amount in the contract
+        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), 1);
 
         // assert the initial storage is expected

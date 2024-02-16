@@ -76,7 +76,7 @@ contract OrderFulfiller is OrderCreator {
 
         // set the recipient of any offer items after an order is fulfilled. If the fulfillment is via
         // `matchAdvancedOrders`, then any unspent offer items will go to this address as well
-        seaportRecipient = address(_fulfiller.safe);
+        seaportRecipient = address(create);
 
         // get a pointer to a new order to fulfill
         OrderToFulfill storage orderToFulfill = ordersToFulfill.push();

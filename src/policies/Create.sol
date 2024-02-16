@@ -7,6 +7,7 @@ import {
 } from "@seaport-core/lib/rental/ConsiderationStructs.sol";
 import {ReceivedItem, SpentItem} from "@seaport-types/lib/ConsiderationStructs.sol";
 import {LibString} from "@solady/utils/LibString.sol";
+import {IERC20} from "@openzeppelin-contracts/interfaces/IERC20.sol";
 
 import {ISafe} from "@src/interfaces/ISafe.sol";
 import {IHook} from "@src/interfaces/IHook.sol";
@@ -587,10 +588,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         _isValidSafeOwner(seaportPayload.fulfiller, payload.fulfillment.recipient);
 
         // Check: verify each execution was sent to the expected destination.
-        _executionInvariantChecks(
-            seaportPayload.totalExecutions,
-            payload.fulfillment.recipient
-        );
+        _executionInvariantChecks(seaportPayload.totalExecutions);
 
         // Check: validate and process seaport offer and consideration items based
         // on the order type.
@@ -758,12 +756,8 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
      *      tokens must first be sent to the Create Policy.
      *
      * @param executions Each execution that was performed by Seaport.
-     * @param expectedRentalSafe The intended recipient of the rental assets.
      */
-    function _executionInvariantChecks(
-        ReceivedItem[] memory executions,
-        address expectedRentalSafe
-    ) internal view {
+    function _executionInvariantChecks(ReceivedItem[] memory executions) internal view {
         for (uint256 i = 0; i < executions.length; ++i) {
             ReceivedItem memory execution = executions[i];
 
@@ -866,13 +860,34 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
     }
 
     /**
+     * @notice Grants an approval from the Create Policy to the Payment Escrow
+     *         contract. This allows the Payment escrow to pull payments from the
+     *         Create Policy whenever a new rental is created.
+     *
+     * @param token The token to approve.
+     * @param amount The amount of the token that the payment escrow can spend.
+     */
+    function approveEscrowPayment(
+        address token,
+        uint256 amount
+    ) external onlyRole("CREATE_ADMIN") {
+        // Payment must be whitelisted to be approved.
+        if (!STORE.whitelistedPayments(token)) {
+            revert Errors.CreatePolicy_PaymentNotWhitelisted(token);
+        }
+
+        // Approve the Payment escrow to spend the tokens.
+        IERC20(token).approve(address(ESCRW), amount);
+    }
+
+    /**
      * @notice Returns whether the interface is supported.
      *
      * @param interfaceId The interface ID to check against.
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public pure override(Zone, TokenReceiver) returns (bool) {
+    ) public view override(Zone, TokenReceiver) returns (bool) {
         return
             Zone.supportsInterface(interfaceId) ||
             TokenReceiver.supportsInterface(interfaceId);

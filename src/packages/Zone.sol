@@ -50,7 +50,7 @@ abstract contract Zone is ZoneInterface, ISIP5, ERC165 {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC165, ZoneInterface) returns (bool) {
+    ) public view virtual override(ERC165, ZoneInterface) returns (bool) {
         return
             interfaceId == type(ISIP5).interfaceId || // SIP-5
             interfaceId == type(ZoneInterface).interfaceId || // ZoneInterface

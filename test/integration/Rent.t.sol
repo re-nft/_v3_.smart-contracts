@@ -221,7 +221,7 @@ contract TestRent is BaseTest {
                 .withIdentifierOrCriteria(0)
                 .withStartAmount(100)
                 .withEndAmount(100)
-                .withRecipient(address(ESCRW))
+                .withRecipient(address(create))
         );
 
         // finalize the order creation
@@ -458,7 +458,7 @@ contract TestRent is BaseTest {
 
     // This test involves a PAY order where one of the items is left out of the PAYEE order.
     // Instead, the fulfiller attempts to use the `recipient` input parameter on `matchAdvancedOrders`
-    // to try to send an asset to an unauthorized address
+    // to try to send an asset to an unauthorized address.
     function test_Reverts_Rent_PayOrder_AdversarialRecipient() public {
         // create a PAY order with 2 ERC721s
         createOrder({
@@ -552,8 +552,7 @@ contract TestRent is BaseTest {
         withRecipient(bob.addr);
 
         // Expect revert because the second ERC721 token was not sent to
-        // the rental wallet of the fulfiller, which was specified in the
-        // `RentPayload` struct.
+        // the create policy.
         finalizePayOrderFulfillmentWithError(
             abi.encodeWithSelector(
                 Errors.CreatePolicy_UnexpectedTokenRecipient.selector,
@@ -562,7 +561,7 @@ contract TestRent is BaseTest {
                 0,
                 1,
                 bob.addr,
-                address(bob.safe)
+                address(create)
             )
         );
     }
