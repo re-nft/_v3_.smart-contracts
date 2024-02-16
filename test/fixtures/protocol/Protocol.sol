@@ -253,10 +253,6 @@ contract Protocol is TokenCreator {
         // Grant `signer` role to the protocol signer to sign off on create payloads
         kernel.grantRole(toRole("CREATE_SIGNER"), rentalSigner.addr);
 
-        // Grant `create_admin` role to the address which can open or close token approvals
-        // for the payment escrow to pull funds from the create policy
-        kernel.grantRole(toRole("CREATE_ADMIN"), deployer.addr);
-
         // Grant 'admin_admin` role to the address which can conduct admin operations on the protocol
         kernel.grantRole(toRole("ADMIN_ADMIN"), deployer.addr);
 
@@ -280,9 +276,6 @@ contract Protocol is TokenCreator {
         // Enable all mock ERC20 tokens for payment
         for (uint256 i = 0; i < erc20s.length; ++i) {
             admin.toggleWhitelistPayment(address(erc20s[i]), true);
-
-            // approve the payment escrow to pull payments from the create policy
-            create.approveEscrowPayment(address(erc20s[i]), type(uint256).max);
         }
 
         // Enable all mock ERC721 tokens for rental

@@ -21,11 +21,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
         // determine a rent duration
         uint rentDuration = 100;
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), amount);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), amount);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase the deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
         // create rental items
@@ -80,11 +82,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
         // determine a rent duration
         uint rentDuration = 100;
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), amount);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), amount);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase the deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
         // create rental items
@@ -136,11 +140,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
         // determine a rent duration
         uint rentDuration = 100;
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), amount);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), amount);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase the deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
         // create rental items
@@ -192,11 +198,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
         // determine a rent duration
         uint rentDuration = 100;
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), amount);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), amount);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase the deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
         // impersonate an address with permissions
@@ -254,11 +262,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
         // determine a rent duration
         uint rentDuration = 100;
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), amount);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), amount);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase the deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
         // impersonate an address with permissions
@@ -317,11 +327,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
         // determine a rent duration
         uint rentDuration = 100;
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), amount);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), amount);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase the deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
         // create rental items
@@ -372,11 +384,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
 
         // create the rental order batch
         for (uint256 i = 0; i < orders.length; i++) {
-            // mint tokens to the create policy
-            erc20s[0].mint(address(create), amount);
+            // mint tokens to the payment escrow
+            erc20s[0].mint(address(ESCRW), amount);
+
+            // impersonate an address with permissions
+            vm.prank(address(create));
 
             // increase the deposit
-            vm.prank(address(create));
             ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
             // create rental items
@@ -434,11 +448,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
 
         // create the rental order batch
         for (uint256 i = 0; i < orders.length; i++) {
-            // mint tokens to the create policy
-            erc20s[0].mint(address(create), amount);
+            // mint tokens to the payment escrow
+            erc20s[0].mint(address(ESCRW), amount);
+
+            // impersonate an address with permissions
+            vm.prank(address(create));
 
             // increase the deposit
-            vm.prank(address(create));
             ESCRW.increaseDeposit(address(erc20s[0]), amount);
 
             // create rental items
@@ -479,11 +495,13 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
     }
 
     function test_Success_IncreaseDeposit() public {
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), 100);
+        // mint tokens to the payment escrow
+        erc20s[0].mint(address(ESCRW), 100);
+
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), 100);
 
         // assert the payment was synced
@@ -517,13 +535,12 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
 
     function test_Success_Skim() public {
         // mint tokens to the payment escrow
-        erc20s[0].mint(address(ESCRW), 50);
+        erc20s[0].mint(address(ESCRW), 150);
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), 100);
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), 100);
 
         // assert all funds are in the escrow
@@ -547,13 +564,12 @@ contract PaymentEscrow_External_Unit_Test is BaseTestWithoutEngine {
 
     function test_Reverts_Skim_NoPermissions() public {
         // mint tokens to the payment escrow
-        erc20s[0].mint(address(ESCRW), 50);
+        erc20s[0].mint(address(ESCRW), 150);
 
-        // mint tokens to the create policy
-        erc20s[0].mint(address(create), 100);
+        // impersonate an address with permissions
+        vm.prank(address(create));
 
         // increase deposit
-        vm.prank(address(create));
         ESCRW.increaseDeposit(address(erc20s[0]), 100);
 
         // assert all funds are in the escrow

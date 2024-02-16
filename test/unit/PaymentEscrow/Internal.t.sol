@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {SettleTo} from "@src/libraries/RentalStructs.sol";
+import {Transferer} from "@src/libraries/Transferer.sol";
 
 import {BaseTestWithoutEngine} from "@test/BaseTest.sol";
 import {PaymentEscrowHarness} from "@test/mocks/harnesses/PaymentEscrowHarness.sol";
@@ -13,6 +14,8 @@ import {MockAlwaysRevertERC20} from "@test/mocks/tokens/weird/MockAlwaysRevertER
 import {MockNeverRevertERC20} from "@test/mocks/tokens/weird/MockNeverRevertERC20.sol";
 
 contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
+    using Transferer for address;
+
     // Payment Escrow Harness contract
     PaymentEscrowHarness public ESCRW_Harness;
 
@@ -58,7 +61,7 @@ contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
         assertEq(erc20s[0].balanceOf(alice.addr), 9990);
 
         // transfer the funds back
-        ESCRW_Harness.safeTransfer(address(erc20s[0]), alice.addr, 10);
+        ESCRW_Harness.transferERC20(address(erc20s[0]), alice.addr, 10);
 
         // assert funds have been received
         assertEq(erc20s[0].balanceOf(address(ESCRW_Harness)), 0);
@@ -73,7 +76,7 @@ contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
         assertEq(withoutReturnsERC20.balanceOf(address(ESCRW_Harness)), 10);
 
         // transfer the funds back
-        ESCRW_Harness.safeTransfer(address(withoutReturnsERC20), alice.addr, 10);
+        ESCRW_Harness.transferERC20(address(withoutReturnsERC20), alice.addr, 10);
 
         // assert funds have been received
         assertEq(withoutReturnsERC20.balanceOf(address(ESCRW_Harness)), 0);
@@ -90,13 +93,14 @@ contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
         // Expect revert because the ERC20 token reverted
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.PaymentEscrowModule_PaymentTransferFailed.selector,
+                Errors.Shared_ERC20TransferFailed.selector,
                 address(alwaysRevertERC20),
+                address(ESCRW_Harness),
                 alice.addr,
                 10
             )
         );
-        ESCRW_Harness.safeTransfer(address(alwaysRevertERC20), alice.addr, 10);
+        ESCRW_Harness.transferERC20(address(alwaysRevertERC20), alice.addr, 10);
     }
 
     function test_Reverts_SafeTransfer_NeverRevertsERC20() public {
@@ -109,13 +113,14 @@ contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
         // Expect revert because the ERC20 token reverted
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.PaymentEscrowModule_PaymentTransferFailed.selector,
+                Errors.Shared_ERC20TransferFailed.selector,
                 address(neverRevertERC20),
+                address(ESCRW_Harness),
                 alice.addr,
                 10
             )
         );
-        ESCRW_Harness.safeTransfer(address(neverRevertERC20), alice.addr, 10);
+        ESCRW_Harness.transferERC20(address(neverRevertERC20), alice.addr, 10);
     }
 
     function test_Success_CalculatePaymentProRata() public {
@@ -324,7 +329,7 @@ contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
         assertEq(ESCRW_Harness.balanceOf(token), amount);
 
         // send funds out the payment escrow
-        ESCRW_Harness.safeTransfer(token, alice.addr, amount);
+        ESCRW_Harness.transferERC20(address(token), alice.addr, amount);
 
         // assert funds are not in the escrow
         assertEq(erc20s[0].balanceOf(address(ESCRW_Harness)), 0);
@@ -358,7 +363,7 @@ contract PaymentEscrow_Internal_Unit_Test is BaseTestWithoutEngine {
         assertEq(ESCRW_Harness.balanceOf(token), amount);
 
         // send funds out the payment escrow
-        ESCRW_Harness.safeTransfer(token, alice.addr, amount);
+        ESCRW_Harness.transferERC20(address(token), alice.addr, amount);
 
         // assert almost all the funds are not in the escrow
         assertEq(erc20s[0].balanceOf(address(ESCRW_Harness)), 1);

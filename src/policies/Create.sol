@@ -47,6 +47,7 @@ import "forge-std/console.sol";
  * @notice Acts as an interface for all behavior related to creating a rental.
  */
 contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
+    using Transferer for address;
     using Transferer for Item;
     using RentalUtils for Item;
     using RentalUtils for Item[];
@@ -652,13 +653,16 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
 
                 if (item.isERC20()) {
                     // Send tokens to the payment escrow.
-                    ESCRW.increaseDeposit(item.token, items[i].amount);
+                    item.token.transferERC20(address(ESCRW), item.amount);
+
+                    // increase deposit on the escrow
+                    ESCRW.increaseDeposit(item.token, item.amount);
                 } else if (item.isERC721()) {
                     // Send ERC721 to the rental wallet.
-                    items[i].transferERC721(order.rentalWallet);
+                    item.transferERC721(order.rentalWallet);
                 } else if (item.isERC1155()) {
                     // Send ERC1155 to the rental wallet.
-                    items[i].transferERC1155(order.rentalWallet);
+                    item.transferERC1155(order.rentalWallet);
                 }
             }
 
@@ -857,27 +861,6 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
 
         // Return the selector of validateOrder as the magic value.
         validOrderMagicValue = ZoneInterface.validateOrder.selector;
-    }
-
-    /**
-     * @notice Grants an approval from the Create Policy to the Payment Escrow
-     *         contract. This allows the Payment escrow to pull payments from the
-     *         Create Policy whenever a new rental is created.
-     *
-     * @param token The token to approve.
-     * @param amount The amount of the token that the payment escrow can spend.
-     */
-    function approveEscrowPayment(
-        address token,
-        uint256 amount
-    ) external onlyRole("CREATE_ADMIN") {
-        // Payment must be whitelisted to be approved.
-        if (!STORE.whitelistedPayments(token)) {
-            revert Errors.CreatePolicy_PaymentNotWhitelisted(token);
-        }
-
-        // Approve the Payment escrow to spend the tokens.
-        IERC20(token).approve(address(ESCRW), amount);
     }
 
     /**

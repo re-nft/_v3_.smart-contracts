@@ -128,17 +128,15 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         vm.assume(amount > 2);
         vm.assume(amount < 1_000_000);
 
-        // add tokens to the create policy
-        uint256 depositedAmount = amount / 2;
-        erc20s[0].mint(address(create), depositedAmount);
+        // add tokens to the contract
+        erc20s[0].mint(address(ESCRW), amount);
 
-        // send the rest directly to the escrow
-        uint256 giftedAmount = amount - depositedAmount;
-        erc20s[0].mint(address(ESCRW), giftedAmount);
+        // impersonate the create policy
+        vm.prank(address(create));
 
         // increase the deposit balance of the contract by half
         // the token amount
-        vm.prank(address(create));
+        uint256 depositedAmount = amount / 2;
         ESCRW.increaseDeposit(address(erc20s[0]), depositedAmount);
 
         // impersonate the admin policy admin

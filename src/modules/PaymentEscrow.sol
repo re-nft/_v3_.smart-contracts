@@ -15,6 +15,7 @@ import {
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {RentalUtils} from "@src/libraries/RentalUtils.sol";
+import {Transferer} from "@src/libraries/Transferer.sol";
 
 /**
  * @title PaymentEscrowBase
@@ -35,6 +36,7 @@ contract PaymentEscrowBase {
  *         fee will be reserved to be withdrawn later by a protocol admin.
  */
 contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
+    using Transferer for address;
     using RentalUtils for Item;
     using RentalUtils for OrderType;
 
@@ -88,70 +90,6 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
     function _calculateFee(uint256 amount) internal view returns (uint256) {
         // Uses 10,000 as a denominator for the fee.
         return (amount * fee) / 10000;
-    }
-
-    /**
-     * @dev Safe `transfer` for ERC20 tokens that do not consistently renturn true/false.
-     *
-     * @param token Asset address which is being sent.
-     * @param to    Destination address for the transfer.
-     * @param value Amount of the asset being transferred.
-     */
-    function _safeTransfer(address token, address to, uint256 value) internal {
-        // Call transfer() on the token.
-        (bool success, bytes memory data) = token.call(
-            abi.encodeWithSelector(IERC20.transfer.selector, to, value)
-        );
-
-        // Because both reverting and returning false are allowed by the ERC20 standard
-        // to indicate a failed transfer, we must handle both cases.
-        //
-        // If success is false, the ERC20 contract reverted.
-        //
-        // If success is true, we must check if return data was provided. If no return
-        // data is provided, then no revert occurred. But, if return data is provided,
-        // then it must be decoded into a bool which will indicate the success of the
-        // transfer.
-        if (!success || (data.length != 0 && !abi.decode(data, (bool)))) {
-            revert Errors.PaymentEscrowModule_PaymentTransferFailed(token, to, value);
-        }
-    }
-
-    /**
-     * @dev Safe `transferFrom` for ERC20 tokens that do not consistently renturn true/false.
-     *
-     * @param token Asset address which is being sent.
-     * @param from  Origin address for the transfer.
-     * @param to    Destination address for the transfer.
-     * @param value Amount of the asset being transferred.
-     */
-    function _safeTransferFrom(
-        address token,
-        address from,
-        address to,
-        uint256 value
-    ) internal {
-        (bool success, bytes memory data) = token.call(
-            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value)
-        );
-
-        // Because both reverting and returning false are allowed by the ERC20 standard
-        // to indicate a failed transfer, we must handle both cases.
-        //
-        // If success is false, the ERC20 contract reverted.
-        //
-        // If success is true, we must check if return data was provided. If no return
-        // data is provided, then no revert occurred. But, if return data is provided,
-        // then it must be decoded into a bool which will indicate the success of the
-        // transfer.
-        if (!success || (data.length != 0 && !abi.decode(data, (bool)))) {
-            revert Errors.PaymentEscrowModule_PaymentTransferFromFailed(
-                token,
-                from,
-                to,
-                value
-            );
-        }
     }
 
     /**
@@ -209,10 +147,10 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
         );
 
         // Send the lender portion of the payment.
-        _safeTransfer(token, lender, lenderAmount);
+        token.transferERC20(lender, lenderAmount);
 
         // Send the renter portion of the payment.
-        _safeTransfer(token, renter, renterAmount);
+        token.transferERC20(renter, renterAmount);
     }
 
     /**
@@ -235,7 +173,7 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
         address settleToAddress = settleTo == SettleTo.LENDER ? lender : renter;
 
         // Send the payment.
-        _safeTransfer(token, settleToAddress, amount);
+        token.transferERC20(settleToAddress, amount);
     }
 
     /**
@@ -406,9 +344,6 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
 
         // Effect: Increase the deposit
         _increaseDeposit(token, amount);
-
-        // Interaction: Transfer the funds from the caller to the escrow.
-        _safeTransferFrom(token, msg.sender, address(this), amount);
     }
 
     /**
@@ -445,7 +380,7 @@ contract PaymentEscrow is Proxiable, Module, PaymentEscrowBase {
         uint256 skimmedBalance = trueBalance - syncedBalance;
 
         // Send the difference to the specified address.
-        _safeTransfer(token, to, skimmedBalance);
+        token.transferERC20(to, skimmedBalance);
 
         // Emit event with fees taken.
         emit Events.FeeTaken(token, skimmedBalance);
