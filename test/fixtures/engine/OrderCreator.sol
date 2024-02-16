@@ -423,6 +423,14 @@ contract OrderCreator is BaseProtocol {
             .saveDefault(STANDARD_ORDER_COMPONENTS);
     }
 
+    function withZone(address zone) internal {
+        // update the zone for the order
+        OrderComponentsLib
+            .fromDefault(STANDARD_ORDER_COMPONENTS)
+            .withZone(zone)
+            .saveDefault(STANDARD_ORDER_COMPONENTS);
+    }
+
     /////////////////////////////////////////////////////////////////////////////////
     //                              Order Finalization                             //
     /////////////////////////////////////////////////////////////////////////////////
