@@ -31,23 +31,27 @@ contract Create_InvariantChecks_Unit_Test is BaseTestWithoutEngine {
         kernel.executeAction(Actions.ActivatePolicy, address(createHarness));
     }
 
-    function test_Success_CheckExpectedRecipient_ERC20() public view {
+    function test_Success_ExecutionInvariantChecks_ERC20() public view {
         // create an execution
-        ReceivedItem memory execution = ReceivedItem({
+        ReceivedItem[] memory executions = new ReceivedItem[](1);
+        executions[0] = ReceivedItem({
             token: address(erc20s[0]),
             itemType: SeaportItemType.ERC20,
             amount: 1,
             identifier: 0,
-            recipient: payable(address(ESCRW))
+            recipient: payable(address(createHarness))
         });
 
         // check the invariant
-        createHarness.checkExpectedRecipient(execution, address(ESCRW));
+        createHarness.executionInvariantChecks(executions);
     }
 
-    function test_Reverts_CheckExpectedRecipient_ERC20_UnexpectedTokenRecipient() public {
+    function test_Reverts_ExecutionInvariantChecks_ERC20_UnexpectedTokenRecipient()
+        public
+    {
         // create an execution
-        ReceivedItem memory execution = ReceivedItem({
+        ReceivedItem[] memory executions = new ReceivedItem[](1);
+        executions[0] = ReceivedItem({
             itemType: SeaportItemType.ERC20,
             token: address(erc20s[0]),
             identifier: 0,
@@ -59,36 +63,38 @@ contract Create_InvariantChecks_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.CreatePolicy_UnexpectedTokenRecipient.selector,
-                execution.itemType,
-                execution.token,
-                execution.identifier,
-                execution.amount,
-                execution.recipient,
-                address(ESCRW)
+                executions[0].itemType,
+                executions[0].token,
+                executions[0].identifier,
+                executions[0].amount,
+                executions[0].recipient,
+                address(createHarness)
             )
         );
-        createHarness.checkExpectedRecipient(execution, address(ESCRW));
+        createHarness.executionInvariantChecks(executions);
     }
 
-    function test_Success_CheckExpectedRecipient_ERC721() public view {
+    function test_Success_ExecutionInvariantChecks_ERC721() public view {
         // create an execution
-        ReceivedItem memory execution = ReceivedItem({
+        ReceivedItem[] memory executions = new ReceivedItem[](1);
+        executions[0] = ReceivedItem({
             token: address(erc721s[0]),
             itemType: SeaportItemType.ERC721,
             amount: 1,
             identifier: 0,
-            recipient: payable(address(alice.safe))
+            recipient: payable(address(createHarness))
         });
 
         // check the invariant
-        createHarness.checkExpectedRecipient(execution, address(alice.safe));
+        createHarness.executionInvariantChecks(executions);
     }
 
-    function test_Reverts_CheckExpectedRecipient_ERC721_UnexpectedTokenRecipient()
+    function test_Reverts_ExecutionInvariantChecks_ERC721_UnexpectedTokenRecipient()
         public
     {
         // create an execution
-        ReceivedItem memory execution = ReceivedItem({
+        ReceivedItem[] memory executions = new ReceivedItem[](1);
+        executions[0] = ReceivedItem({
             token: address(erc721s[0]),
             itemType: SeaportItemType.ERC721,
             amount: 1,
@@ -100,36 +106,38 @@ contract Create_InvariantChecks_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.CreatePolicy_UnexpectedTokenRecipient.selector,
-                execution.itemType,
-                execution.token,
-                execution.identifier,
-                execution.amount,
-                execution.recipient,
-                address(alice.safe)
+                executions[0].itemType,
+                executions[0].token,
+                executions[0].identifier,
+                executions[0].amount,
+                executions[0].recipient,
+                address(createHarness)
             )
         );
-        createHarness.checkExpectedRecipient(execution, address(alice.safe));
+        createHarness.executionInvariantChecks(executions);
     }
 
-    function test_Success_CheckExpectedRecipient_ERC1155() public view {
+    function test_Success_ExecutionInvariantChecks_ERC1155() public view {
         // create an execution
-        ReceivedItem memory execution = ReceivedItem({
+        ReceivedItem[] memory executions = new ReceivedItem[](1);
+        executions[0] = ReceivedItem({
             token: address(erc1155s[0]),
             itemType: SeaportItemType.ERC1155,
             amount: 1,
             identifier: 0,
-            recipient: payable(address(alice.safe))
+            recipient: payable(address(createHarness))
         });
 
         // check the invariant
-        createHarness.checkExpectedRecipient(execution, address(alice.safe));
+        createHarness.executionInvariantChecks(executions);
     }
 
-    function test_Reverts_CheckExpectedRecipient_ERC1155_UnexpectedTokenRecipient()
+    function test_Reverts_ExecutionInvariantChecks_ERC1155_UnexpectedTokenRecipient()
         public
     {
         // create an execution
-        ReceivedItem memory execution = ReceivedItem({
+        ReceivedItem[] memory executions = new ReceivedItem[](1);
+        executions[0] = ReceivedItem({
             token: address(erc1155s[0]),
             itemType: SeaportItemType.ERC1155,
             amount: 1,
@@ -140,14 +148,14 @@ contract Create_InvariantChecks_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.CreatePolicy_UnexpectedTokenRecipient.selector,
-                execution.itemType,
-                execution.token,
-                execution.identifier,
-                execution.amount,
-                execution.recipient,
-                address(alice.safe)
+                executions[0].itemType,
+                executions[0].token,
+                executions[0].identifier,
+                executions[0].amount,
+                executions[0].recipient,
+                address(createHarness)
             )
         );
-        createHarness.checkExpectedRecipient(execution, address(alice.safe));
+        createHarness.executionInvariantChecks(executions);
     }
 }

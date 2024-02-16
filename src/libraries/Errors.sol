@@ -52,6 +52,21 @@ library Errors {
      */
     error Shared_HookFailBytes(bytes revertData);
 
+    /**
+     * @dev Thrown when an ERC20 transfer failed.
+     *
+     * @param token Address of the token being transferred.
+     * @param from  Address that the token was sent from.
+     * @param to    Address that the token was sent to.
+     * @param value Amount of the token sent.
+     */
+    error Shared_ERC20TransferFailed(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    );
+
     /////////////////////////////////////////////////////////////////////////////////
     //                                 Create Policy                               //
     /////////////////////////////////////////////////////////////////////////////////
@@ -306,19 +321,6 @@ library Errors {
     /////////////////////////////////////////////////////////////////////////////////
     //                             Payment Escrow Module                           //
     /////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @dev Thrown when a payment transfer failed.
-     *
-     * @param token Address of the token being transferred.
-     * @param to    Address that the token was sent to.
-     * @param value Amount of the token sent.
-     */
-    error PaymentEscrowModule_PaymentTransferFailed(
-        address token,
-        address to,
-        uint256 value
-    );
 
     /**
      * @dev Thrown when attempting to make a payment of 0.

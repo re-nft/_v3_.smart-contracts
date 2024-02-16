@@ -6,6 +6,7 @@ import {IERC1155} from "@openzeppelin-contracts/token/ERC1155/IERC1155.sol";
 
 import {RentalOrder, Item, ItemType} from "@src/libraries/RentalStructs.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Transferer} from "@src/libraries/Transferer.sol";
 
 /**
  * @title Reclaimer
@@ -13,6 +14,8 @@ import {Errors} from "@src/libraries/Errors.sol";
  *         stopped, and transfers them to the proper recipient.
  */
 abstract contract Reclaimer {
+    using Transferer for Item;
+
     // The original address that this contract was deployed with
     address private immutable original;
 
@@ -21,32 +24,6 @@ abstract contract Reclaimer {
      */
     constructor() {
         original = address(this);
-    }
-
-    /**
-     * @dev Helper function to transfer an ERC721 token.
-     *
-     * @param item      Item which will be transferred.
-     * @param recipient Address which will receive the token.
-     */
-    function _transferERC721(Item memory item, address recipient) private {
-        IERC721(item.token).safeTransferFrom(address(this), recipient, item.identifier);
-    }
-
-    /**
-     * @dev Helper function to transfer an ERC1155 token.
-     *
-     * @param item      Item which will be transferred.
-     * @param recipient Address which will receive the token.
-     */
-    function _transferERC1155(Item memory item, address recipient) private {
-        IERC1155(item.token).safeTransferFrom(
-            address(this),
-            recipient,
-            item.identifier,
-            item.amount,
-            ""
-        );
     }
 
     /**
@@ -91,12 +68,11 @@ abstract contract Reclaimer {
             Item memory item = rentalOrder.items[i];
 
             // Check if the item is an ERC721.
-            if (item.itemType == ItemType.ERC721)
-                _transferERC721(item, rentalOrder.lender);
+            if (item.itemType == ItemType.ERC721) item.transferERC721(rentalOrder.lender);
 
             // check if the item is an ERC1155.
             if (item.itemType == ItemType.ERC1155)
-                _transferERC1155(item, rentalOrder.lender);
+                item.transferERC1155(rentalOrder.lender);
         }
     }
 }

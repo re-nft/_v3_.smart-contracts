@@ -4,12 +4,15 @@ pragma solidity ^0.8.20;
 import {Kernel} from "@src/Kernel.sol";
 import {PaymentEscrow} from "@src/modules/PaymentEscrow.sol";
 import {SettleTo} from "@src/libraries/RentalStructs.sol";
+import {Transferer} from "@src/libraries/Transferer.sol";
 
 contract PaymentEscrowHarness is PaymentEscrow {
+    using Transferer for address;
+
     constructor(Kernel kernel_) PaymentEscrow(kernel_) {}
 
-    function safeTransfer(address token, address to, uint256 value) external {
-        _safeTransfer(token, to, value);
+    function transferERC20(address token, address to, uint256 value) external {
+        token.transferERC20(to, value);
     }
 
     function calculatePaymentProRata(

@@ -212,7 +212,7 @@ contract OrderCreator is BaseProtocol {
             orderToCreate.considerationItems.push(
                 ConsiderationItemLib
                     .empty()
-                    .withRecipient(address(orderToCreate.offerer.safe))
+                    .withRecipient(address(create))
                     .withItemType(ItemType.ERC721)
                     .withToken(address(erc721s[i]))
                     .withIdentifierOrCriteria(usedConsiderationERC721s[i])
@@ -231,7 +231,7 @@ contract OrderCreator is BaseProtocol {
             orderToCreate.considerationItems.push(
                 ConsiderationItemLib
                     .empty()
-                    .withRecipient(address(orderToCreate.offerer.safe))
+                    .withRecipient(address(create))
                     .withItemType(ItemType.ERC1155)
                     .withToken(address(erc1155s[i]))
                     .withIdentifierOrCriteria(usedConsiderationERC1155s[i])
@@ -249,7 +249,7 @@ contract OrderCreator is BaseProtocol {
             orderToCreate.considerationItems.push(
                 ConsiderationItemLib
                     .empty()
-                    .withRecipient(address(ESCRW))
+                    .withRecipient(address(create))
                     .withItemType(ItemType.ERC20)
                     .withToken(address(erc20s[i]))
                     .withStartAmount(100)
@@ -420,6 +420,14 @@ contract OrderCreator is BaseProtocol {
         OrderComponentsLib
             .fromDefault(STANDARD_ORDER_COMPONENTS)
             .withSalt(salt)
+            .saveDefault(STANDARD_ORDER_COMPONENTS);
+    }
+
+    function withZone(address zone) internal {
+        // update the zone for the order
+        OrderComponentsLib
+            .fromDefault(STANDARD_ORDER_COMPONENTS)
+            .withZone(zone)
             .saveDefault(STANDARD_ORDER_COMPONENTS);
     }
 

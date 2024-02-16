@@ -78,10 +78,7 @@ contract CreateHarness is Create {
         _isValidSafeOwner(owner, safe);
     }
 
-    function checkExpectedRecipient(
-        ReceivedItem memory execution,
-        address expectedRecipient
-    ) external pure {
-        _checkExpectedRecipient(execution, expectedRecipient);
+    function executionInvariantChecks(ReceivedItem[] memory executions) external view {
+        _executionInvariantChecks(executions);
     }
 }
