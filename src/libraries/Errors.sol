@@ -271,7 +271,8 @@ library Errors {
     );
 
     /**
-     * @dev Thrown when an extension is not whitelisted.
+     * @dev Thrown when an unauthorized call to change the enabled/disabled status
+     *      of an extension is made.
      *
      * @param extension An extension contract for the rental safe to add as a module.
      */
@@ -349,6 +350,13 @@ library Errors {
      * @param bitmap Used to identify what functions the hook supports.
      */
     error StorageModule_InvalidHookStatusBitmap(uint8 bitmap);
+
+    /**
+     * @dev Thrown when an invalid bitmap is provided to the extension whitelist.
+     *
+     * @param bitmap Used to identify whether the extension can be enabled or disabled.
+     */
+    error StorageModule_InvalidWhitelistExtensionBitmap(uint8 bitmap);
 
     /////////////////////////////////////////////////////////////////////////////////
     //                               Create2 Deployer                              //

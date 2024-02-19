@@ -318,8 +318,9 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         // impersonate the admin policy admin
         vm.prank(deployer.addr);
 
-        // enable this address to be added as a module by rental safes
-        admin.toggleWhitelistExtension(address(mockTarget), true);
+        // enable this address to be added as a module by rental safes,
+        // but not disabled
+        admin.toggleWhitelistExtension(address(mockTarget), uint8(2));
 
         // Build up the `enableModule(address)` calldata
         bytes memory enableModuleCalldata = abi.encodeWithSelector(
@@ -335,8 +336,8 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
         // impersonate the admin policy admin
         vm.prank(deployer.addr);
 
-        // enable this address to be added as a module by rental safes
-        admin.toggleWhitelistExtension(address(mockTarget), true);
+        // enable this address to be removed as a module by rental safes
+        admin.toggleWhitelistExtension(address(mockTarget), uint8(1));
 
         // Build up the `disableModule(address,address)` calldata
         bytes memory disableModuleCalldata = abi.encodeWithSelector(

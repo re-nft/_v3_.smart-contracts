@@ -424,11 +424,15 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         // impersonate an address with permissions
         vm.prank(address(admin));
 
-        // enable this address to be added as a module by rental safes
-        STORE.toggleWhitelistExtension(TEST_ADDR_1, true);
+        // update the hook status to 0x11 which allows the extension to be
+        // enabled and disabled.
+        STORE.toggleWhitelistExtension(address(this), uint8(3));
 
-        // assert the address is whitelisted
-        assertTrue(STORE.whitelistedExtensions(TEST_ADDR_1));
+        // assert that the extension can be enabled
+        assertEq(STORE.extensionEnableAllowed(address(this)), true);
+
+        // assert that the extension can be disabled
+        assertEq(STORE.extensionDisableAllowed(address(this)), true);
     }
 
     function test_Reverts_ToggleWhitelistExtension_NoPermissions() public {
@@ -439,7 +443,32 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
         );
-        STORE.toggleWhitelistExtension(TEST_ADDR_1, true);
+        STORE.toggleWhitelistExtension(TEST_ADDR_1, uint8(1));
+    }
+
+    function test_Reverts_ToggleWhitelistExtension_NotContract() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Expect revert because the hook address is not a contract
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.StorageModule_NotContract.selector, address(0))
+        );
+        STORE.toggleWhitelistExtension(address(0), uint8(2));
+    }
+
+    function test_Reverts_ToggleWhitelistExtension_InvalidBitmap() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Expect revert because the extension bitmap is greater than 0x11
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.StorageModule_InvalidWhitelistExtensionBitmap.selector,
+                uint8(4)
+            )
+        );
+        STORE.toggleWhitelistExtension(address(this), uint8(4));
     }
 
     function test_Success_ToggleWhitelistAsset() public {
