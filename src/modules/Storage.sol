@@ -58,7 +58,7 @@ contract StorageBase {
     mapping(address delegate => bool isWhitelisted) public whitelistedDelegates;
 
     // Allows for the safe registration of extensions that can be enabled on a safe.
-    mapping(address extension => bool isWhitelisted) public whitelistedExtensions;
+    mapping(address extension => uint8 enabled) public whitelistedExtensions;
 
     // Allows the use of these whitelisted tokens as rentable assets.
     mapping(address asset => bool isWhitelisted) public whitelistedAssets;
@@ -180,6 +180,26 @@ contract Storage is Proxiable, Module, StorageBase {
     function hookOnStop(address hook) external view returns (bool) {
         // 4 is 0x00000100. Determines if the masked bit is enabled.
         return uint8(4) & hookStatus[hook] != 0;
+    }
+
+    /**
+     * @notice Determines whether the extension can be enabled on the rental safe.
+     * 
+     * @param extension Address of the extension contract.
+     */
+    function extensionEnableAllowed(address extension) external view returns (bool) {
+        // 2 is 0x10. Determines if the masked bit is enabled.
+        return uint8(2) & whitelistedExtensions[extension] != 0;
+    }
+
+    /**
+     * @notice Determines whether the extension can be disabled on the rental safe.
+     * 
+     * @param extension Address of the extension contract.
+     */
+    function extensionDisableAllowed(address extension) external view returns (bool) {
+        // 1 is 0x01. Determines if the masked bit is enabled.
+        return uint8(1) & whitelistedExtensions[extension] != 0;
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -340,16 +360,27 @@ contract Storage is Proxiable, Module, StorageBase {
     }
 
     /**
-     * @notice Toggles whether an extension is whitelisted.
+     * @notice Updates an extension with a bitmap that indicates whether the extension
+     *         can be enabled or disabled by the rental safe. A valid bitmap is any
+     *         decimal value that is less than or equal to 3 (0x11).
      *
      * @param extension Gnosis safe module which can be added to a rental safe.
-     * @param isEnabled Boolean indicating whether the module is enabled.
+     * @param bitmap    Decimal value that defines the status of the extension.
      */
     function toggleWhitelistExtension(
         address extension,
-        bool isEnabled
+        uint8 bitmap
     ) external onlyByProxy permissioned {
-        whitelistedExtensions[extension] = isEnabled;
+        // Require that the `extension` address is a contract.
+        if (extension.code.length == 0)
+            revert Errors.StorageModule_NotContract(extension);
+
+        // 3 is 0x11. This ensures that only a valid bitmap can be set.
+        if (bitmap > uint8(3))
+            revert Errors.StorageModule_InvalidWhitelistExtensionBitmap(bitmap);
+
+        // Update the extension.
+        whitelistedExtensions[extension] = bitmap;
     }
 
     /**

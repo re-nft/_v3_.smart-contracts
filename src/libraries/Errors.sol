@@ -350,6 +350,13 @@ library Errors {
      */
     error StorageModule_InvalidHookStatusBitmap(uint8 bitmap);
 
+    /**
+     * @dev Thrown when an invalid bitmap is provided to the extension whitelist.
+     *
+     * @param bitmap Used to identify whether the extension can be enabled or disabled.
+     */
+    error StorageModule_InvalidWhitelistExtensionBitmap(uint8 bitmap);
+
     /////////////////////////////////////////////////////////////////////////////////
     //                               Create2 Deployer                              //
     /////////////////////////////////////////////////////////////////////////////////

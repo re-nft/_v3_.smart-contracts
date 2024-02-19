@@ -186,18 +186,6 @@ contract Guard is Policy, BaseGuard {
     }
 
     /**
-     * @dev Reverts if the extension is not whitelisted.
-     *
-     * @param extension Address of the extension.
-     */
-    function _revertNonWhitelistedExtension(address extension) private view {
-        // Check if the extension is whitelisted.
-        if (!STORE.whitelistedExtensions(extension)) {
-            revert Errors.GuardPolicy_UnauthorizedExtension(extension);
-        }
-    }
-
-    /**
      * @dev Forwards a gnosis safe call to a hook contract for further processing.
      *
      * @param hook  Address of the hook contract.
@@ -322,8 +310,10 @@ contract Guard is Policy, BaseGuard {
                 )
             );
 
-            // Check if the extension is whitelisted.
-            _revertNonWhitelistedExtension(extension);
+            // Check if the extension can be enabled.
+            if (!STORE.extensionEnableAllowed(extension)) {
+                revert Errors.GuardPolicy_UnauthorizedExtension(extension);
+            }
         } else if (selector == gnosis_safe_disable_module_selector) {
             // Load the extension address from calldata.
             address extension = address(
@@ -334,8 +324,10 @@ contract Guard is Policy, BaseGuard {
                 )
             );
 
-            // Check if the extension is whitelisted.
-            _revertNonWhitelistedExtension(extension);
+            // Check if the extension can be disabled.
+            if (!STORE.extensionDisableAllowed(extension)) {
+                revert Errors.GuardPolicy_UnauthorizedExtension(extension);
+            }
         } else {
             // Revert if the `setApprovalForAll` selector is specified. This selector is
             // shared between ERC721 and ERC1155 tokens.

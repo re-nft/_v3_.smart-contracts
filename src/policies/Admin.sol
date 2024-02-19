@@ -113,17 +113,18 @@ contract Admin is Policy {
     }
 
     /**
-     * @notice Toggle whether an extension is whitelisted. An extension is any contract
-     *         which can be added to a rental safe as a Safe module.
+     * @notice Updates an extension with a bitmap that indicates whether the extension
+     *         can be enabled or disabled by the rental safe. A valid bitmap is any
+     *         decimal value that is less than or equal to 3 (0x11).
      *
-     * @param extension Extension which can be added to a safe.
-     * @param isEnabled Whether the extension is enabled.
+     * @param extension Gnosis safe module which can be added to a rental safe.
+     * @param bitmap    Decimal value that defines the status of the extension.
      */
     function toggleWhitelistExtension(
         address extension,
-        bool isEnabled
+        uint8 bitmap
     ) external onlyRole("ADMIN_ADMIN") {
-        STORE.toggleWhitelistExtension(extension, isEnabled);
+        STORE.toggleWhitelistExtension(extension, bitmap);
     }
 
     /**
