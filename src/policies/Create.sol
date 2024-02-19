@@ -40,8 +40,6 @@ import {
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import "forge-std/console.sol";
-
 /**
  * @title Create
  * @notice Acts as an interface for all behavior related to creating a rental.
@@ -580,7 +578,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         _isValidSeaportOrderType(seaportPayload.orderType);
 
         // Check: The payload is being used for the correct order.
-        _isValidtPayloadForOrder(payload.orderHash, seaportPayload.orderHash);
+        _isValidPayloadForOrder(payload.orderHash, seaportPayload.orderHash);
 
         // Check: make sure order metadata is valid with the given seaport order zone hash.
         _isValidOrderMetadata(payload.metadata, seaportPayload.zoneHash);
@@ -697,7 +695,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
      * @param payloadOrderHash Order hash that the payload expects.
      * @param seaportOrderHash Order hash of the order being fulfilled.
      */
-    function _isValidtPayloadForOrder(
+    function _isValidPayloadForOrder(
         bytes32 payloadOrderHash,
         bytes32 seaportOrderHash
     ) internal pure {

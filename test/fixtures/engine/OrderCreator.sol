@@ -31,8 +31,6 @@ import {ProtocolAccount} from "@test/utils/Types.sol";
 
 import {OrderMetadata, OrderType, Hook} from "@src/libraries/RentalStructs.sol";
 
-import "forge-std/console.sol";
-
 // Sets up logic in the test engine related to order creation
 contract OrderCreator is BaseProtocol {
     using OfferItemLib for OfferItem;
