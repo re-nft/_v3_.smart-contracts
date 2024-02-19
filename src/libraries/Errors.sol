@@ -271,7 +271,8 @@ library Errors {
     );
 
     /**
-     * @dev Thrown when an extension is not whitelisted.
+     * @dev Thrown when an unauthorized call to change the enabled/disabled status
+     *      of an extension is made.
      *
      * @param extension An extension contract for the rental safe to add as a module.
      */

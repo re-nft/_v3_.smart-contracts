@@ -40,7 +40,7 @@ contract Stop_ReclaimItems_Unit_Test is BaseTestWithoutEngine {
 
         // enable the stop policy harness as a module. This is so the stop policy
         // harness can be added to a rental safe.
-        admin.toggleWhitelistExtension(address(stopHarness), true);
+        admin.toggleWhitelistExtension(address(stopHarness), uint8(2));
 
         // stop impersonating
         vm.stopPrank();

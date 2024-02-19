@@ -30,10 +30,10 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         vm.prank(deployer.addr);
 
         // enable this address to be added as a module by rental safes
-        admin.toggleWhitelistExtension(EXTENSION, true);
+        admin.toggleWhitelistExtension(address(this), uint8(2));
 
-        // assert the address is whitelisted
-        assertTrue(STORE.whitelistedExtensions(EXTENSION));
+        // assert the address can be enabled as a module.
+        assertTrue(STORE.extensionEnableAllowed(address(this)));
     }
 
     function test_Reverts_ToggleWhitelistDelegate_NotAdmin() public {
@@ -99,7 +99,7 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
         );
-        admin.toggleWhitelistExtension(EXTENSION, true);
+        admin.toggleWhitelistExtension(EXTENSION, uint8(2));
     }
 
     function test_Success_SetFee() public {
