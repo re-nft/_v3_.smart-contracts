@@ -358,6 +358,19 @@ library Errors {
      */
     error StorageModule_InvalidWhitelistExtensionBitmap(uint8 bitmap);
 
+    /**
+     * @dev Thrown when making a batch update to a token whitelist and the array of tokens is
+     *      not the same length as the array of booleans that distinguish whether the asset is
+     *      whitelisted or not.
+     *
+     * @param assetLength Length of the asset array.
+     * @param boolLength Length of the bool array.
+     */
+    error StorageModule_WhitelistBatchLengthMismatch(
+        uint256 assetLength,
+        uint256 boolLength
+    );
+
     /////////////////////////////////////////////////////////////////////////////////
     //                               Create2 Deployer                              //
     /////////////////////////////////////////////////////////////////////////////////

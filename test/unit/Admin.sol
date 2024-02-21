@@ -69,6 +69,44 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         admin.toggleWhitelistAsset(TOKEN, true);
     }
 
+    function test_Success_ToggleWhitelistAssetBatch() public {
+        // impersonate the admin admin
+        vm.prank(deployer.addr);
+
+        // Plan to whitelist 2 of the 3 assets
+        address[] memory assets = new address[](3);
+        bool[] memory enabled = new bool[](3);
+
+        // build up the asset batch
+        for (uint256 i; i < assets.length; ++i) {
+            assets[i] = address(erc721s[i]);
+        }
+
+        // dont whitelist the middle asset
+        enabled[0] = true;
+        enabled[1] = false;
+        enabled[2] = true;
+
+        // whitelist the batch of tokens
+        admin.toggleWhitelistAssetBatch(assets, enabled);
+
+        // assert the correct addresses are whitelisted
+        assertEq(STORE.whitelistedAssets(assets[0]), true);
+        assertEq(STORE.whitelistedAssets(assets[1]), false);
+        assertEq(STORE.whitelistedAssets(assets[2]), true);
+    }
+
+    function test_Reverts_ToggleWhitelistAssetBatch_NotAdmin() public {
+        // impersonate a non-admin
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.toggleWhitelistAssetBatch(new address[](0), new bool[](0));
+    }
+
     function test_Success_ToggleWhitelistPayment() public {
         // impersonate the admin admin
         vm.prank(deployer.addr);
@@ -89,6 +127,44 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
             abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
         );
         admin.toggleWhitelistPayment(TOKEN, true);
+    }
+
+    function test_Success_ToggleWhitelistPaymentBatch() public {
+        // impersonate the admin admin
+        vm.prank(deployer.addr);
+
+        // Plan to whitelist 2 of the 3 payments
+        address[] memory payments = new address[](3);
+        bool[] memory enabled = new bool[](3);
+
+        // build up the payment batch
+        for (uint256 i; i < payments.length; ++i) {
+            payments[i] = address(erc20s[i]);
+        }
+
+        // dont whitelist the middle payment
+        enabled[0] = true;
+        enabled[1] = false;
+        enabled[2] = true;
+
+        // whitelist the batch of tokens
+        admin.toggleWhitelistPaymentBatch(payments, enabled);
+
+        // assert the correct addresses are whitelisted
+        assertEq(STORE.whitelistedPayments(payments[0]), true);
+        assertEq(STORE.whitelistedPayments(payments[1]), false);
+        assertEq(STORE.whitelistedPayments(payments[2]), true);
+    }
+
+    function test_Reverts_ToggleWhitelistPaymentBatch_NotAdmin() public {
+        // impersonate a non-admin
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.toggleWhitelistPaymentBatch(new address[](0), new bool[](0));
     }
 
     function test_Reverts_ToggleWhitelistExtension_NotAdmin() public {
