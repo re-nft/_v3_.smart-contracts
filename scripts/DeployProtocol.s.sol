@@ -39,9 +39,10 @@ contract DeployProtocol is BaseDeploy {
         _deployCreatePolicy(salt);
         _deployStopPolicy(salt);
         _deployGuardPolicy(salt);
+        _deployFallbackPolicy(salt);
         _deployFactoryPolicy(
             salt,
-            config.safeTokenCallbackHandler(),
+            address(fallbackPolicy),
             config.safeProxyFactory(),
             config.safeSingleton()
         );
@@ -51,6 +52,7 @@ contract DeployProtocol is BaseDeploy {
         _setUpPolicy(address(stop));
         _setUpPolicy(address(guard));
         _setUpPolicy(address(create));
+        _setUpPolicy(address(fallbackPolicy));
 
         // Grant role for privileged access
         _grantRole("ADMIN_ADMIN", deployer);
@@ -77,6 +79,7 @@ contract DeployProtocol is BaseDeploy {
         console2.log("Stop Policy:          %s", address(stop));
         console2.log("Guard Policy:         %s", address(guard));
         console2.log("Admin Policy:         %s", address(admin));
+        console2.log("Fallback Policy:      %s", address(fallbackPolicy));
         console2.log("Factory Policy:       %s", address(factory));
         console2.log("Seaport:              %s", address(seaport));
         console2.log("Conduit:              %s", address(conduit));

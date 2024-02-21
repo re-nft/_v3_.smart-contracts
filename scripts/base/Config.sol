@@ -17,7 +17,6 @@ contract Config is Script {
     uint256 public minorVersion;
     address public safeSingleton;
     address public safeProxyFactory;
-    address public safeTokenCallbackHandler;
     address public serverSideSigner;
 
     // active protocol contracts
@@ -32,6 +31,7 @@ contract Config is Script {
     address public factory;
     address public admin;
     address public guard;
+    address public fallbackPolicy;
     address public seaport;
     address public conduitController;
     address public conduit;
@@ -50,7 +50,6 @@ contract Config is Script {
         minorVersion = _parseUint256("$.minorVersion");
         safeSingleton = _parseAddress("$.safeSingleton");
         safeProxyFactory = _parseAddress("$.safeProxyFactory");
-        safeTokenCallbackHandler = _parseAddress("$.safeTokenCallbackHandler");
         serverSideSigner = _parseAddress("$.serverSideSigner");
         create2Deployer = _parseAddress("$.create2Deployer");
         kernel = _parseAddress("$.kernel");
@@ -63,6 +62,7 @@ contract Config is Script {
         factory = _parseAddress("$.factoryPolicy");
         admin = _parseAddress("$.adminPolicy");
         guard = _parseAddress("$.guardPolicy");
+        fallbackPolicy = _parseAddress("$.fallbackPolicy");
         seaport = _parseAddress("$.seaport");
         conduitController = _parseAddress("$.conduitController");
         conduit = _parseAddress("$.conduit");
