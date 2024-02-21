@@ -18,6 +18,7 @@ import {Stop} from "@src/policies/Stop.sol";
 import {Factory} from "@src/policies/Factory.sol";
 import {Admin} from "@src/policies/Admin.sol";
 import {Guard} from "@src/policies/Guard.sol";
+import {Fallback} from "@src/policies/Fallback.sol";
 import {toRole} from "@src/libraries/KernelUtils.sol";
 import {Proxy} from "@src/proxy/Proxy.sol";
 
@@ -52,6 +53,7 @@ contract BaseDeploy is Deployer {
     Factory public factory;
     Admin public admin;
     Guard public guard;
+    Fallback public fallbackPolicy;
 
     function setUp() public override {
         super.setUp();
@@ -72,6 +74,7 @@ contract BaseDeploy is Deployer {
         factory = Factory(config.factory());
         admin = Admin(config.admin());
         guard = Guard(config.guard());
+        fallbackPolicy = Fallback(config.fallbackPolicy());
     }
 
     function _displayChainInfo() internal view {
@@ -81,6 +84,7 @@ contract BaseDeploy is Deployer {
         console2.log("");
         console2.log("Chain:        %s", chain);
         console2.log("Deployer:     %s", deployer);
+        console2.log("Version:      %s.%s", config.majorVersion(), config.minorVersion());
         console2.log("");
     }
 
@@ -373,9 +377,34 @@ contract BaseDeploy is Deployer {
         );
     }
 
+    function _deployFallbackPolicy(bytes32 salt) internal broadcast {
+        require(address(kernel) != address(0), "No kernel address provided in config.");
+
+        // abi encode the fallback policy bytecode and constructor arguments
+        bytes memory fallbackInitCode = abi.encodePacked(
+            type(Fallback).creationCode,
+            abi.encode(address(kernel))
+        );
+
+        // Deploy guard policy contract
+        fallbackPolicy = Fallback(create2Deployer.deploy(salt, fallbackInitCode));
+
+        // expected address
+        address expectedAddress = create2Deployer.getCreate2Address(
+            salt,
+            fallbackInitCode
+        );
+
+        // ensure the fallback policy was deployed properly
+        require(
+            address(fallbackPolicy) == expectedAddress,
+            "fallback policy expected address is incorrect"
+        );
+    }
+
     function _deployFactoryPolicy(
         bytes32 salt,
-        address safeCallbackHandler,
+        address fallbackHandler,
         address safeProxyFactory,
         address safeSingleton
     ) internal broadcast {
@@ -384,8 +413,8 @@ contract BaseDeploy is Deployer {
         require(address(stop) != address(0), "No stop address provided in config.");
         require(address(guard) != address(0), "No guard address provided in config.");
         require(
-            safeCallbackHandler != address(0),
-            "No safeCallbackHandler address provided in config."
+            fallbackHandler != address(0),
+            "No fallbackHandler address provided in config."
         );
         require(
             safeProxyFactory != address(0),
@@ -403,7 +432,7 @@ contract BaseDeploy is Deployer {
                 address(kernel),
                 address(stop),
                 address(guard),
-                safeCallbackHandler,
+                fallbackHandler,
                 safeProxyFactory,
                 safeSingleton
             )
@@ -420,8 +449,8 @@ contract BaseDeploy is Deployer {
 
         // ensure the factory was initialized properly
         require(
-            address(factory.fallbackHandler()) == safeCallbackHandler,
-            "factory callback handler address is incorrect"
+            address(factory.fallbackHandler()) == fallbackHandler,
+            "factory fallback handler address is incorrect"
         );
         require(
             address(factory.safeProxyFactory()) == safeProxyFactory,
