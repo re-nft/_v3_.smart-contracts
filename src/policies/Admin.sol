@@ -68,7 +68,7 @@ contract Admin is Policy {
         onlyKernel
         returns (Permissions[] memory requests)
     {
-        requests = new Permissions[](11);
+        requests = new Permissions[](13);
         requests[0] = Permissions(
             toKeycode("STORE"),
             STORE.toggleWhitelistExtension.selector
@@ -83,16 +83,24 @@ contract Admin is Policy {
         );
         requests[3] = Permissions(
             toKeycode("STORE"),
+            STORE.toggleWhitelistAssetBatch.selector
+        );
+        requests[4] = Permissions(
+            toKeycode("STORE"),
             STORE.toggleWhitelistPayment.selector
         );
-        requests[4] = Permissions(toKeycode("STORE"), STORE.upgrade.selector);
-        requests[5] = Permissions(toKeycode("STORE"), STORE.freeze.selector);
-        requests[6] = Permissions(toKeycode("STORE"), STORE.setMaxRentDuration.selector);
+        requests[5] = Permissions(
+            toKeycode("STORE"),
+            STORE.toggleWhitelistPaymentBatch.selector
+        );
+        requests[6] = Permissions(toKeycode("STORE"), STORE.upgrade.selector);
+        requests[7] = Permissions(toKeycode("STORE"), STORE.freeze.selector);
+        requests[8] = Permissions(toKeycode("STORE"), STORE.setMaxRentDuration.selector);
 
-        requests[7] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
-        requests[8] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
-        requests[9] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
-        requests[10] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
+        requests[9] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
+        requests[10] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
+        requests[11] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
+        requests[12] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +149,19 @@ contract Admin is Policy {
     }
 
     /**
+     * @notice Toggles whether a batch of tokens can be rented.
+     *
+     * @param assets    Token array which can be rented via the protocol.
+     * @param isEnabled Boolean array indicating whether those token are whitelisted.
+     */
+    function toggleWhitelistAssetBatch(
+        address[] memory assets,
+        bool[] memory isEnabled
+    ) external onlyRole("ADMIN_ADMIN") {
+        STORE.toggleWhitelistAssetBatch(assets, isEnabled);
+    }
+
+    /**
      * @notice Toggles whether a token can be used as a payment.
      *
      * @param payment   Token address which can be used as payment via the protocol.
@@ -151,6 +172,19 @@ contract Admin is Policy {
         bool isEnabled
     ) external onlyRole("ADMIN_ADMIN") {
         STORE.toggleWhitelistPayment(payment, isEnabled);
+    }
+
+    /**
+     * @notice Toggles whether a batch of tokens can be used as payment.
+     *
+     * @param payments  Token array which can be used as payment via the protocol.
+     * @param isEnabled Boolean array indicating whether those token are whitelisted.
+     */
+    function toggleWhitelistPaymentBatch(
+        address[] memory payments,
+        bool[] memory isEnabled
+    ) external onlyRole("ADMIN_ADMIN") {
+        STORE.toggleWhitelistPaymentBatch(payments, isEnabled);
     }
 
     /**

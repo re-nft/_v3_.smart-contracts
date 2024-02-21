@@ -493,6 +493,55 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         STORE.toggleWhitelistAsset(TEST_ADDR_1, true);
     }
 
+    function test_Success_ToggleWhitelistAssetBatch() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Plan to whitelist 3 assets
+        address[] memory assets = new address[](3);
+        bool[] memory enabled = new bool[](3);
+
+        // build up the asset batch
+        for (uint256 i; i < assets.length; ++i) {
+            assets[i] = address(erc721s[i]);
+            enabled[i] = true;
+        }
+
+        // whitelist the batch of tokens
+        STORE.toggleWhitelistAssetBatch(assets, enabled);
+
+        // assert each address is whitelisted
+        for (uint256 i; i < assets.length; ++i) {
+            assertTrue(STORE.whitelistedAssets(assets[i]));
+        }
+    }
+
+    function test_Reverts_ToggleWhitelistAssetBatch_LengthMismatch() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Expect revert because the arrays have a length mismatch
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.StorageModule_WhitelistBatchLengthMismatch.selector,
+                uint256(2),
+                uint256(3)
+            )
+        );
+        STORE.toggleWhitelistAssetBatch(new address[](2), new bool[](3));
+    }
+
+    function test_Reverts_ToggleWhitelistAssetBatch_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.toggleWhitelistAssetBatch(new address[](0), new bool[](0));
+    }
+
     function test_Success_ToggleWhitelistPayment() public {
         // impersonate an address with permissions
         vm.prank(address(admin));
@@ -513,6 +562,55 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
             abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
         );
         STORE.toggleWhitelistPayment(TEST_ADDR_1, true);
+    }
+
+    function test_Success_ToggleWhitelistPaymentBatch() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Plan to whitelist 3 payments
+        address[] memory payments = new address[](3);
+        bool[] memory enabled = new bool[](3);
+
+        // build up the payment batch
+        for (uint256 i; i < payments.length; ++i) {
+            payments[i] = address(erc20s[i]);
+            enabled[i] = true;
+        }
+
+        // whitelist the batch of tokens
+        STORE.toggleWhitelistPaymentBatch(payments, enabled);
+
+        // assert each address is whitelisted
+        for (uint256 i; i < payments.length; ++i) {
+            assertTrue(STORE.whitelistedPayments(payments[i]));
+        }
+    }
+
+    function test_Reverts_ToggleWhitelistPaymentBatch_LengthMismatch() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Expect revert because the arrays have a length mismatch
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.StorageModule_WhitelistBatchLengthMismatch.selector,
+                uint256(2),
+                uint256(3)
+            )
+        );
+        STORE.toggleWhitelistPaymentBatch(new address[](2), new bool[](3));
+    }
+
+    function test_Reverts_ToggleWhitelistPaymentBatch_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.toggleWhitelistPaymentBatch(new address[](0), new bool[](0));
     }
 
     function test_Success_SetMaxRentDuration() public {

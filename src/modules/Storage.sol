@@ -184,7 +184,7 @@ contract Storage is Proxiable, Module, StorageBase {
 
     /**
      * @notice Determines whether the extension can be enabled on the rental safe.
-     * 
+     *
      * @param extension Address of the extension contract.
      */
     function extensionEnableAllowed(address extension) external view returns (bool) {
@@ -194,7 +194,7 @@ contract Storage is Proxiable, Module, StorageBase {
 
     /**
      * @notice Determines whether the extension can be disabled on the rental safe.
-     * 
+     *
      * @param extension Address of the extension contract.
      */
     function extensionDisableAllowed(address extension) external view returns (bool) {
@@ -397,6 +397,30 @@ contract Storage is Proxiable, Module, StorageBase {
     }
 
     /**
+     * @notice Toggles whether a batch of tokens can be rented.
+     *
+     * @param assets    Token array which can be rented via the protocol.
+     * @param isEnabled Boolean array indicating whether those token are whitelisted.
+     */
+    function toggleWhitelistAssetBatch(
+        address[] memory assets,
+        bool[] memory isEnabled
+    ) external onlyByProxy permissioned {
+        // Check that the arrays are the same length
+        if (assets.length != isEnabled.length) {
+            revert Errors.StorageModule_WhitelistBatchLengthMismatch(
+                assets.length,
+                isEnabled.length
+            );
+        }
+
+        // Process each whitelist entry
+        for (uint256 i; i < assets.length; ++i) {
+            whitelistedAssets[assets[i]] = isEnabled[i];
+        }
+    }
+
+    /**
      * @notice Toggles whether a token can be used as a payment.
      *
      * @param payment   Token address which can be used as payment via the protocol.
@@ -407,6 +431,30 @@ contract Storage is Proxiable, Module, StorageBase {
         bool isEnabled
     ) external onlyByProxy permissioned {
         whitelistedPayments[payment] = isEnabled;
+    }
+
+    /**
+     * @notice Toggles whether a batch of tokens can be used as payment.
+     *
+     * @param payments  Token array which can be used as payment via the protocol.
+     * @param isEnabled Boolean array indicating whether those token are whitelisted.
+     */
+    function toggleWhitelistPaymentBatch(
+        address[] memory payments,
+        bool[] memory isEnabled
+    ) external onlyByProxy permissioned {
+        // Check that the arrays are the same length
+        if (payments.length != isEnabled.length) {
+            revert Errors.StorageModule_WhitelistBatchLengthMismatch(
+                payments.length,
+                isEnabled.length
+            );
+        }
+
+        // Process each whitelist entry
+        for (uint256 i; i < payments.length; ++i) {
+            whitelistedPayments[payments[i]] = isEnabled[i];
+        }
     }
 
     /**
