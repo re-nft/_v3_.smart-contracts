@@ -290,9 +290,6 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
             }
         }
 
-        // Effect: Remove rentals from storage by using the order hash.
-        STORE.removeRentals(orderHash, _convertToStatic(rentalAssetUpdates));
-
         // Interaction: Transfer rentals from the renter back to lender.
         _reclaimRentedItems(order);
 
@@ -303,6 +300,10 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
         if (order.hooks.length > 0) {
             _removeHooks(order.hooks, order.items, order.rentalWallet);
         }
+
+        // Invariant: Remove rentals from storage by using the order hash only after all
+        // processing for the order has been completed
+        STORE.removeRentals(orderHash, _convertToStatic(rentalAssetUpdates));
 
         // Emit rental order stopped.
         _emitRentalOrderStopped(order.seaportOrderHash, msg.sender);
@@ -349,9 +350,6 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
                 }
             }
 
-            // Effect: Remove rentals from storage by using the order hash.
-            STORE.removeRentals(orderHash, _convertToStatic(rentalAssetUpdates));
-
             // Interaction: Transfer rentals from the renter back to lender.
             _reclaimRentedItems(orders[i]);
 
@@ -362,6 +360,10 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
             if (orders[i].hooks.length > 0) {
                 _removeHooks(orders[i].hooks, orders[i].items, orders[i].rentalWallet);
             }
+
+            // Invariant: Remove rentals from storage by using the order hash only after
+            // processing for the order has been completed
+            STORE.removeRentals(orderHash, _convertToStatic(rentalAssetUpdates));
 
             // Emit rental order stopped.
             _emitRentalOrderStopped(orderHash, msg.sender);
