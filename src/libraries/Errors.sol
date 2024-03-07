@@ -103,6 +103,14 @@ library Errors {
     error CreatePolicy_OfferCountZero();
 
     /**
+     * @dev Thrown when the total number of offer items in an order exceeds the maximum
+     * 		amount allowed.
+     *
+     * @param offerCount Number of offer items in the order.
+     */
+    error CreatePolicy_OfferCountExceedsMax(uint256 offerCount);
+
+    /**
      * @dev Thrown when the total number of offer items in an order is greater than zero.
      *
      * @param offerCount Number of offer items in the order.
@@ -115,7 +123,16 @@ library Errors {
     error CreatePolicy_ConsiderationCountZero();
 
     /**
-     * @dev Thrown when the total number of consideration items in an order is greater than zero.
+     * @dev Thrown when the total number of consideration items in an order exceeds
+     * 		the maximum	amount allowed.
+     *
+     * @param considerationCount Number of consideration items in the order.
+     */
+    error CreatePolicy_ConsiderationCountExceedsMax(uint256 considerationCount);
+
+    /**
+     * @dev Thrown when the total number of consideration items in an order is greater
+     * 		than zero.
      *
      * @param considerationCount Number of consideration items in the order.
      */

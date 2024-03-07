@@ -204,17 +204,25 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         Item[] memory rentalItems,
         SpentItem[] memory offers,
         uint256 startIndex
-    ) internal pure {
+    ) internal view {
+        // Put offer length onto the stack.
+        uint256 offerLength = offers.length;
+
         // Must be at least one offer item.
-        if (offers.length == 0) {
+        if (offerLength == 0) {
             revert Errors.CreatePolicy_OfferCountZero();
+        }
+
+        // Must not exceed maximum offer item amount.
+        if (offerLength > STORE.maxOfferItems()) {
+            revert Errors.CreatePolicy_OfferCountExceedsMax(offerLength);
         }
 
         // Define elements of the item which depend on the token type.
         ItemType itemType;
 
         // Process each offer item.
-        for (uint256 i; i < offers.length; ++i) {
+        for (uint256 i; i < offerLength; ++i) {
             // Get the offer item.
             SpentItem memory offer = offers[i];
 
@@ -256,7 +264,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         Item[] memory rentalItems,
         SpentItem[] memory offers,
         uint256 startIndex
-    ) internal pure {
+    ) internal view {
         // Keep track of each item type.
         uint256 totalRentals;
         uint256 totalPayments;
@@ -265,8 +273,16 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         ItemType itemType;
         SettleTo settleTo;
 
+        // Put offer length onto the stack.
+        uint256 offerLength = offers.length;
+
+        // Must not exceed maximum offer item amount.
+        if (offerLength > STORE.maxOfferItems()) {
+            revert Errors.CreatePolicy_OfferCountExceedsMax(offerLength);
+        }
+
         // Process each offer item.
-        for (uint256 i; i < offers.length; ++i) {
+        for (uint256 i; i < offerLength; ++i) {
             // Get the offer item.
             SpentItem memory offer = offers[i];
 
@@ -335,14 +351,22 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         Item[] memory rentalItems,
         ReceivedItem[] memory considerations,
         uint256 startIndex
-    ) internal pure {
+    ) internal view {
+        // Put consideration length onto the stack.
+        uint256 considerationLength = considerations.length;
+
         // Must be at least one consideration item.
-        if (considerations.length == 0) {
+        if (considerationLength == 0) {
             revert Errors.CreatePolicy_ConsiderationCountZero();
         }
 
+        // Must not exceed maximum consideration item amount.
+        if (considerationLength > STORE.maxConsiderationItems()) {
+            revert Errors.CreatePolicy_ConsiderationCountExceedsMax(considerationLength);
+        }
+
         // Process each consideration item.
-        for (uint256 i; i < considerations.length; ++i) {
+        for (uint256 i; i < considerationLength; ++i) {
             // Get the consideration item.
             ReceivedItem memory consideration = considerations[i];
 
@@ -376,7 +400,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         Item[] memory rentalItems,
         ReceivedItem[] memory considerations,
         uint256 startIndex
-    ) internal pure {
+    ) internal view {
         // Keep track of each item type.
         uint256 totalRentals;
         uint256 totalPayments;
@@ -385,8 +409,16 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         ItemType itemType;
         SettleTo settleTo;
 
+        // Put consideration length onto the stack.
+        uint256 considerationLength = considerations.length;
+
+        // Must not exceed maximum consideration item amount.
+        if (considerationLength > STORE.maxConsiderationItems()) {
+            revert Errors.CreatePolicy_ConsiderationCountExceedsMax(considerationLength);
+        }
+
         // Process each consideration item.
-        for (uint256 i; i < considerations.length; ++i) {
+        for (uint256 i; i < considerationLength; ++i) {
             // Get the consideration item.
             ReceivedItem memory consideration = considerations[i];
 
@@ -457,7 +489,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         SpentItem[] memory offers,
         ReceivedItem[] memory considerations,
         OrderType orderType
-    ) internal pure returns (Item[] memory items) {
+    ) internal view returns (Item[] memory items) {
         // Initialize an array of items.
         items = new Item[](offers.length + considerations.length);
 

@@ -367,4 +367,48 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         );
         admin.setMaxRentDuration(22 days);
     }
+
+    function test_Success_SetMaxOfferItems() public {
+        // impersonate an address with permissions
+        vm.prank(deployer.addr);
+
+        // set the max offer items
+        admin.setMaxOfferItems(15);
+
+        // expect the max offer items to have changed
+        assertEq(STORE.maxOfferItems(), 15);
+    }
+
+    function test_Reverts_SetMaxOfferItems_NotAmin() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.setMaxOfferItems(15);
+    }
+
+    function test_Success_SetMaxConsiderationItems() public {
+        // impersonate an address with permissions
+        vm.prank(deployer.addr);
+
+        // set the max consideration items
+        admin.setMaxConsiderationItems(15);
+
+        // expect the max consideration items to have changed
+        assertEq(STORE.maxConsiderationItems(), 15);
+    }
+
+    function test_Reverts_setMaxConsiderationItems_NotAmin() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.setMaxConsiderationItems(15);
+    }
 }

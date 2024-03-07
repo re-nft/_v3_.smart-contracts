@@ -503,4 +503,16 @@ contract BaseDeploy is Deployer {
         // Set the max rent duration
         admin.setMaxRentDuration(duration);
     }
+
+    function _setMaxOfferItems(uint256 offerItemLength) internal broadcast {
+        // Set the max offer items
+        admin.setMaxOfferItems(offerItemLength);
+    }
+
+    function _setMaxConsiderationItems(
+        uint256 considerationItemLength
+    ) internal broadcast {
+        // Set the max offer items
+        admin.setMaxConsiderationItems(considerationItemLength);
+    }
 }

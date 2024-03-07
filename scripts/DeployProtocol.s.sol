@@ -64,6 +64,12 @@ contract DeployProtocol is BaseDeploy {
         // Set max rent duration
         _setMaxRentDuration(21 days);
 
+        // Set max offer items
+        _setMaxOfferItems(10);
+
+        // Set max consideration items
+        _setMaxConsiderationItems(10);
+
         // display banners
         _displayChainInfo();
         _displayProtocolAddressesBanner();
