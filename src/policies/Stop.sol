@@ -125,6 +125,7 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
      */
     function _validateRentalCanBeStopped(
         OrderType orderType,
+        uint256 startTimestamp,
         uint256 endTimestamp,
         address expectedLender
     ) internal view {
@@ -133,6 +134,11 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
 
         // Determine if the fulfiller is the lender of the order.
         bool isLender = expectedLender == msg.sender;
+
+        // Order cannot be stopped in the same transaction it was created.
+        if (startTimestamp == block.timestamp) {
+            revert Errors.StopPolicy_StoppedTooSoon();
+        }
 
         // BASE orders processing.
         if (orderType.isBaseOrder()) {
@@ -270,7 +276,12 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
         }
 
         // Check that the rental can be stopped.
-        _validateRentalCanBeStopped(order.orderType, order.endTimestamp, order.lender);
+        _validateRentalCanBeStopped(
+            order.orderType,
+            order.startTimestamp,
+            order.endTimestamp,
+            order.lender
+        );
 
         // Create an accumulator which will hold all of the rental asset updates, consisting of IDs and
         // the rented amount. From this point on, new memory cannot be safely allocated until the
@@ -329,6 +340,7 @@ contract Stop is Policy, Signer, Reclaimer, Accumulator {
             // Check that the rental can be stopped.
             _validateRentalCanBeStopped(
                 orders[i].orderType,
+                orders[i].startTimestamp,
                 orders[i].endTimestamp,
                 orders[i].lender
             );
