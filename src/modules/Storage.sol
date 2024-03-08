@@ -71,6 +71,10 @@ contract StorageBase {
 
     // Allows the use of these whitelisted tokens as payments for rentals.
     mapping(address payment => bool isWhitelisted) public whitelistedPayments;
+
+    // Allows a rental safe to upgrade to a newer guard policy if the current guard
+    // policy ever has to be deactivated due to unforseen circumstances.
+    address public guardEmergencyUpgrade;
 }
 
 /**
@@ -510,5 +514,17 @@ contract Storage is Proxiable, Module, StorageBase {
         uint256 newConsiderationLength
     ) external onlyByProxy permissioned {
         maxConsiderationItems = newConsiderationLength;
+    }
+
+    /**
+     * @notice Sets the guard emergency upgrade address.
+     *
+     * @param guardEmergencyUpgradeAddress The contract address which will allow rental
+     * 									   safes to upgrade their guard policy.
+     */
+    function setGuardEmergencyUpgrade(
+        address guardEmergencyUpgradeAddress
+    ) external onlyByProxy permissioned {
+        guardEmergencyUpgrade = guardEmergencyUpgradeAddress;
     }
 }

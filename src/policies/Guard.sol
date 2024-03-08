@@ -395,28 +395,41 @@ contract Guard is Policy, BaseGuard {
         bytes memory,
         address
     ) external override {
+        // Check if the transaction is using delegate call.
+        bool isDelegateCall = operation == Enum.Operation.DelegateCall;
+
         // Check if this guard is active for the protocol.
-        if (!isActive) {
-            revert Errors.GuardPolicy_Deactivated();
+        if (isActive) {
+            // Disallow transactions that use delegate call, unless explicitly
+            // permitted by the protocol.
+            if (isDelegateCall && !STORE.whitelistedDelegates(to)) {
+                revert Errors.GuardPolicy_UnauthorizedDelegateCall(to);
+            }
+        }
+        // If it isnt, then check if using delegate call and if the target address is
+        // the guard emergency upgrade contract.
+        else {
+            if (!isDelegateCall || to != STORE.guardEmergencyUpgrade()) {
+                revert Errors.GuardPolicy_Deactivated();
+            }
         }
 
-        // Disallow transactions that use delegate call, unless explicitly
-        // permitted by the protocol.
-        if (operation == Enum.Operation.DelegateCall && !STORE.whitelistedDelegates(to)) {
-            revert Errors.GuardPolicy_UnauthorizedDelegateCall(to);
-        }
+        // Place `to` back on top of the stack.
+        address _to = to;
+        uint256 _value = value;
+        bytes memory _data = data;
 
         // Fetch the hook to interact with for this transaction.
-        address hook = STORE.contractToHook(to);
+        address hook = STORE.contractToHook(_to);
         bool hookIsActive = STORE.hookOnTransaction(hook);
 
         // If a hook exists and is enabled, forward the control flow to the hook.
         if (hook != address(0) && hookIsActive) {
-            _forwardToHook(hook, msg.sender, to, value, data);
+            _forwardToHook(hook, msg.sender, _to, _value, _data);
         }
         // If no hook exists, use basic tx check.
         else {
-            _checkTransaction(msg.sender, to, data);
+            _checkTransaction(msg.sender, _to, _data);
         }
     }
 
