@@ -286,12 +286,12 @@ contract Protocol is TokenCreator {
 
         // Enable all mock ERC721 tokens for rental
         for (uint256 i = 0; i < erc721s.length; ++i) {
-            admin.toggleWhitelistAsset(address(erc721s[i]), true);
+            admin.toggleWhitelistAsset(address(erc721s[i]), uint8(3));
         }
 
         // Enable all mock ERC1155 tokens for rental
         for (uint256 i = 0; i < erc1155s.length; ++i) {
-            admin.toggleWhitelistAsset(address(erc1155s[i]), true);
+            admin.toggleWhitelistAsset(address(erc1155s[i]), uint8(3));
         }
 
         // Stop impersonating the deployer

@@ -380,16 +380,16 @@ library Errors {
     error StorageModule_InvalidHookStatusBitmap(uint8 bitmap);
 
     /**
-     * @dev Thrown when an invalid bitmap is provided to the extension whitelist.
+     * @dev Thrown when an invalid bitmap is provided to a whitelist.
      *
-     * @param bitmap Used to identify whether the extension can be enabled or disabled.
+     * @param bitmap Used to identify the value of the whitelist.
      */
-    error StorageModule_InvalidWhitelistExtensionBitmap(uint8 bitmap);
+    error StorageModule_InvalidWhitelistBitmap(uint8 bitmap);
 
     /**
-     * @dev Thrown when making a batch update to a token whitelist and the array of tokens is
-     *      not the same length as the array of booleans that distinguish whether the asset is
-     *      whitelisted or not.
+     * @dev Thrown when making a batch update to a token whitelist and the array of
+     *  	tokens is not the same length as the array of booleans that distinguish
+     * 		whether the asset is whitelisted or not.
      *
      * @param assetLength Length of the asset array.
      * @param boolLength Length of the bool array.

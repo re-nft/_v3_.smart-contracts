@@ -126,14 +126,14 @@ contract Proxy_Storage_Unit_Test is BaseTestWithoutEngine {
         // expect revert because the implementation contract is accessed
         // instead of the proxy
         vm.expectRevert(abi.encodeWithSelector(Errors.Proxy_OnlyCallByProxy.selector));
-        storageImplementation.toggleWhitelistAsset(TEST_ADDR_1, true);
+        storageImplementation.toggleWhitelistAsset(TEST_ADDR_1, uint8(3));
     }
 
     function test_Reverts_ToggleWhitelistAssetBatch_NotByProxy() public {
         // expect revert because the implementation contract is accessed
         // instead of the proxy
         vm.expectRevert(abi.encodeWithSelector(Errors.Proxy_OnlyCallByProxy.selector));
-        storageImplementation.toggleWhitelistAssetBatch(new address[](0), new bool[](0));
+        storageImplementation.toggleWhitelistAssetBatch(new address[](0), new uint8[](0));
     }
 
     function test_Reverts_ToggleWhitelistPayment_NotByProxy() public {

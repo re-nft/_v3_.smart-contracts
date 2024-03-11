@@ -147,27 +147,27 @@ contract Admin is Policy {
     /**
      * @notice Toggles whether a token can be rented.
      *
-     * @param asset     Token address which can be rented via the protocol.
-     * @param isEnabled Whether the token is whitelisted for rent.
+     * @param asset  Token address which can be rented via the protocol.
+     * @param bitmap Bitmap that denotes whether an asset can be rented.
      */
     function toggleWhitelistAsset(
         address asset,
-        bool isEnabled
+        uint8 bitmap
     ) external onlyRole("ADMIN_ADMIN") {
-        STORE.toggleWhitelistAsset(asset, isEnabled);
+        STORE.toggleWhitelistAsset(asset, bitmap);
     }
 
     /**
      * @notice Toggles whether a batch of tokens can be rented.
      *
-     * @param assets    Token array which can be rented via the protocol.
-     * @param isEnabled Boolean array indicating whether those token are whitelisted.
+     * @param assets  Token array which can be rented via the protocol.
+     * @param bitmaps Bitmap array indicating whether those assets can be rented.
      */
     function toggleWhitelistAssetBatch(
         address[] memory assets,
-        bool[] memory isEnabled
+        uint8[] memory bitmaps
     ) external onlyRole("ADMIN_ADMIN") {
-        STORE.toggleWhitelistAssetBatch(assets, isEnabled);
+        STORE.toggleWhitelistAssetBatch(assets, bitmaps);
     }
 
     /**
