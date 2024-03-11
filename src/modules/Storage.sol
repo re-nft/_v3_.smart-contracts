@@ -28,6 +28,12 @@ contract StorageBase {
     // Maximum rent duration.
     uint256 public maxRentDuration;
 
+    // Maximum offer items for a single order.
+    uint256 public maxOfferItems;
+
+    // Maximum consideration items for a single order.
+    uint256 public maxConsiderationItems;
+
     /////////////////////////////////////////////////////////////////////////////////
     //                            Deployed Safe Storage                            //
     /////////////////////////////////////////////////////////////////////////////////
@@ -484,5 +490,25 @@ contract Storage is Proxiable, Module, StorageBase {
      */
     function setMaxRentDuration(uint256 newDuration) external onlyByProxy permissioned {
         maxRentDuration = newDuration;
+    }
+
+    /**
+     * @notice Sets the maximum offer items for a single order.
+     *
+     * @param newOfferLength The new maximum number of offer items.
+     */
+    function setMaxOfferItems(uint256 newOfferLength) external onlyByProxy permissioned {
+        maxOfferItems = newOfferLength;
+    }
+
+    /**
+     * @notice Sets the maximum consideration items for a single order.
+     *
+     * @param newConsiderationLength The new maximum number of consideration items.
+     */
+    function setMaxConsiderationItems(
+        uint256 newConsiderationLength
+    ) external onlyByProxy permissioned {
+        maxConsiderationItems = newConsiderationLength;
     }
 }

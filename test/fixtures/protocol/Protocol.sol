@@ -273,6 +273,12 @@ contract Protocol is TokenCreator {
         // Set the maximum rent duration to 21 days
         admin.setMaxRentDuration(21 days);
 
+        // Set the maximum offer items to 10
+        admin.setMaxOfferItems(10);
+
+        // Set the maximum consideration items to 10
+        admin.setMaxConsiderationItems(10);
+
         // Enable all mock ERC20 tokens for payment
         for (uint256 i = 0; i < erc20s.length; ++i) {
             admin.toggleWhitelistPayment(address(erc20s[i]), true);

@@ -68,7 +68,7 @@ contract Admin is Policy {
         onlyKernel
         returns (Permissions[] memory requests)
     {
-        requests = new Permissions[](13);
+        requests = new Permissions[](15);
         requests[0] = Permissions(
             toKeycode("STORE"),
             STORE.toggleWhitelistExtension.selector
@@ -96,11 +96,16 @@ contract Admin is Policy {
         requests[6] = Permissions(toKeycode("STORE"), STORE.upgrade.selector);
         requests[7] = Permissions(toKeycode("STORE"), STORE.freeze.selector);
         requests[8] = Permissions(toKeycode("STORE"), STORE.setMaxRentDuration.selector);
+        requests[9] = Permissions(toKeycode("STORE"), STORE.setMaxOfferItems.selector);
+        requests[10] = Permissions(
+            toKeycode("STORE"),
+            STORE.setMaxConsiderationItems.selector
+        );
 
-        requests[9] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
-        requests[10] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
-        requests[11] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
-        requests[12] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
+        requests[11] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
+        requests[12] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
+        requests[13] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
+        requests[14] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -251,5 +256,25 @@ contract Admin is Policy {
      */
     function setMaxRentDuration(uint256 newDuration) external onlyRole("ADMIN_ADMIN") {
         STORE.setMaxRentDuration(newDuration);
+    }
+
+    /**
+     * @notice Sets the maximum offer items for a single order.
+     *
+     * @param newOfferLength The new maximum number of offer items.
+     */
+    function setMaxOfferItems(uint256 newOfferLength) external onlyRole("ADMIN_ADMIN") {
+        STORE.setMaxOfferItems(newOfferLength);
+    }
+
+    /**
+     * @notice Sets the maximum consideration items for a single order.
+     *
+     * @param newConsiderationLength The new maximum number of consideration items.
+     */
+    function setMaxConsiderationItems(
+        uint256 newConsiderationLength
+    ) external onlyRole("ADMIN_ADMIN") {
+        STORE.setMaxConsiderationItems(newConsiderationLength);
     }
 }

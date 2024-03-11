@@ -634,4 +634,48 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         );
         STORE.setMaxRentDuration(22 days);
     }
+
+    function test_Success_SetMaxOfferItems() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // set the max offer items
+        STORE.setMaxOfferItems(15);
+
+        // expect the max offer items to have changed
+        assertEq(STORE.maxOfferItems(), 15);
+    }
+
+    function test_Reverts_SetMaxOfferItems_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.setMaxOfferItems(15);
+    }
+
+    function test_Success_SetMaxConsiderationItems() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // set the max consideration items
+        STORE.setMaxConsiderationItems(15);
+
+        // expect the max consideration items to have changed
+        assertEq(STORE.maxConsiderationItems(), 15);
+    }
+
+    function test_Reverts_SetMaxConsiderationItems_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.setMaxConsiderationItems(15);
+    }
 }

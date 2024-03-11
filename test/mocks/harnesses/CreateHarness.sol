@@ -14,7 +14,7 @@ contract CreateHarness is Create {
         Item[] memory rentalItems,
         SpentItem[] memory offer,
         uint256 startIndex
-    ) external pure returns (Item[] memory processedItems) {
+    ) external view returns (Item[] memory processedItems) {
         _processBaseOrderOffer(rentalItems, offer, startIndex);
 
         // rental items are processed by reference. Set them to a new variable to return by value
@@ -25,7 +25,7 @@ contract CreateHarness is Create {
         Item[] memory rentalItems,
         ReceivedItem[] memory consideration,
         uint256 startIndex
-    ) external pure returns (Item[] memory processedItems) {
+    ) external view returns (Item[] memory processedItems) {
         _processBaseOrderConsideration(rentalItems, consideration, startIndex);
 
         // rental items are processed by reference. Set them to a new variable to return by value
@@ -36,7 +36,7 @@ contract CreateHarness is Create {
         Item[] memory rentalItems,
         SpentItem[] memory offer,
         uint256 startIndex
-    ) external pure returns (Item[] memory processedItems) {
+    ) external view returns (Item[] memory processedItems) {
         _processPayOrderOffer(rentalItems, offer, startIndex);
 
         // rental items are processed by reference. Set them to a new variable to return by value
@@ -47,7 +47,7 @@ contract CreateHarness is Create {
         Item[] memory rentalItems,
         ReceivedItem[] memory consideration,
         uint256 startIndex
-    ) external pure {
+    ) external view {
         _processPayeeOrderConsideration(rentalItems, consideration, startIndex);
     }
 
@@ -55,7 +55,7 @@ contract CreateHarness is Create {
         SpentItem[] memory offer,
         ReceivedItem[] memory consideration,
         OrderType orderType
-    ) external pure returns (Item[] memory items) {
+    ) external view returns (Item[] memory items) {
         items = _convertToItems(offer, consideration, orderType);
     }
 
