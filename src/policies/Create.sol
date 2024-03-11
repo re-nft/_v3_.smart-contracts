@@ -641,7 +641,8 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
             // Compute the order hash.
             bytes32 orderHash = _deriveRentalOrderHash(order);
 
-            // Interaction: Update storage only if the order is a Base Order or Pay order.
+            // Invariant: Add rentals to storage before any other processing, and only
+            // if the order is a Base Order or Pay order.
             STORE.addRentals(orderHash, _convertToStatic(rentalAssetUpdates));
 
             // Interaction: Send tokens to their expected destinations. The rented assets
