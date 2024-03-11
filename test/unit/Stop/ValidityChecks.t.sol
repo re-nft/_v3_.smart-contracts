@@ -26,6 +26,23 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         kernel.executeAction(Actions.ActivatePolicy, address(stopHarness));
     }
 
+    function test_Reverts_CanBeStopped_StoppedTooSoon() public {
+        // impersonate the lender
+        vm.prank(alice.addr);
+
+        // Expect the rental cannot be stopped because it was started in the same
+        // transaction that it was stopped.
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.StopPolicy_StoppedTooSoon.selector)
+        );
+        stopHarness.validateRentalCanBeStopped(
+            OrderType.BASE,
+            block.timestamp,
+            block.timestamp - 1,
+            alice.addr
+        );
+    }
+
     function test_Success_CanBeStopped_BaseOrder_Expired_IsLender() public {
         // impersonate the lender
         vm.prank(alice.addr);
@@ -33,6 +50,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         // Expect the rental can be stopped
         stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
+            0,
             block.timestamp - 1,
             alice.addr
         );
@@ -45,6 +63,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         // Expect the rental can be stopped
         stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
+            0,
             block.timestamp - 1,
             alice.addr
         );
@@ -64,6 +83,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         );
         stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
+            0,
             block.timestamp + 1,
             alice.addr
         );
@@ -83,6 +103,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         );
         stopHarness.validateRentalCanBeStopped(
             OrderType.BASE,
+            0,
             block.timestamp + 1,
             alice.addr
         );
@@ -95,6 +116,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         // Expect the rental can be stopped
         stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
+            0,
             block.timestamp - 1,
             alice.addr
         );
@@ -107,6 +129,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         // Expect the rental can be stopped
         stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
+            0,
             block.timestamp - 1,
             alice.addr
         );
@@ -119,6 +142,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         // Expect the rental can be stopped
         stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
+            0,
             block.timestamp + 1,
             alice.addr
         );
@@ -139,6 +163,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         );
         stopHarness.validateRentalCanBeStopped(
             OrderType.PAY,
+            0,
             block.timestamp + 1,
             alice.addr
         );
@@ -158,6 +183,7 @@ contract Stop_ValidityChecks_Unit_Test is BaseTestWithoutEngine {
         );
         stopHarness.validateRentalCanBeStopped(
             OrderType.PAYEE,
+            0,
             block.timestamp - 1,
             alice.addr
         );

@@ -204,6 +204,11 @@ library Errors {
     error CreatePolicy_InvalidSafeOwner(address unauthorizedOwner, address safe);
 
     /**
+     * @dev Thrown when a consideration item has the offerer selected as a recipient.
+     */
+    error CreatePolicy_OffererCannotBeRecipient();
+
+    /**
      * @dev Thrown when an unauthorized address signs a create policy payloads.
      *
      * @param signer Address that signed the rent payload.
@@ -232,6 +237,12 @@ library Errors {
      * @param orderHash Hash of the rental order.
      */
     error StopPolicy_OrderDoesNotExist(bytes32 orderHash);
+
+    /**
+     * @dev Thrown when an order is stopped in the same transaction that it was started.
+     *
+     */
+    error StopPolicy_StoppedTooSoon();
 
     /**
      * @dev Thrown when either the timestamp or the stopper address is invalid when

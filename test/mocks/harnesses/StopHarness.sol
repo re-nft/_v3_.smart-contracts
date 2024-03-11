@@ -18,10 +18,16 @@ contract StopHarness is Stop {
 
     function validateRentalCanBeStopped(
         OrderType orderType,
+        uint256 startTimestamp,
         uint256 endTimestamp,
         address expectedLender
     ) external view {
-        _validateRentalCanBeStopped(orderType, endTimestamp, expectedLender);
+        _validateRentalCanBeStopped(
+            orderType,
+            startTimestamp,
+            endTimestamp,
+            expectedLender
+        );
     }
 
     function reclaimRentedItems(RentalOrder memory order) external {

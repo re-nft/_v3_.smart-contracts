@@ -618,6 +618,9 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         // Check: verify the fulfiller of the order is an owner of the recipient safe.
         _isValidSafeOwner(seaportPayload.fulfiller, payload.fulfillment.recipient);
 
+        // Check: verify the offerer is not the recipient of any consideration items.
+        _offererNotRecipient(seaportPayload.offerer, seaportPayload.consideration);
+
         // Check: verify each execution was sent to the expected destination.
         _executionInvariantChecks(seaportPayload.totalExecutions);
 
@@ -782,6 +785,25 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
         // Make sure the fulfiller is the owner of the recipient rental safe.
         if (!ISafe(safe).isOwner(owner)) {
             revert Errors.CreatePolicy_InvalidSafeOwner(owner, safe);
+        }
+    }
+
+    /**
+     * @dev Checks that none of the consideration item recipients are set to the offerer
+     * of the order. Since seaport views these consideration items as a no-op, it will
+     * result in them not being included in the array of `totalExecutions`.
+     *
+     * @param offerer 		 Address of the order offerer.
+     * @param considerations Each consideration item in the order being processed.
+     */
+    function _offererNotRecipient(
+        address offerer,
+        ReceivedItem[] memory considerations
+    ) internal pure {
+        for (uint256 i = 0; i < considerations.length; ++i) {
+            if (offerer == considerations[i].recipient) {
+                revert Errors.CreatePolicy_OffererCannotBeRecipient();
+            }
         }
     }
 

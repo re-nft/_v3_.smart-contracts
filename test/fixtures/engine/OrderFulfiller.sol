@@ -700,6 +700,18 @@ contract OrderFulfiller is OrderCreator {
         internal
         returns (RentalOrder[] memory rentalOrders)
     {
+        rentalOrders = _finalizePayOrdersFulfillment(bytes(""));
+    }
+
+    function finalizePayOrdersFulfillmentWithError(
+        bytes memory expectedError
+    ) internal returns (RentalOrder[] memory rentalOrders) {
+        rentalOrders = _finalizePayOrdersFulfillment(expectedError);
+    }
+
+    function _finalizePayOrdersFulfillment(
+        bytes memory expectedError
+    ) internal returns (RentalOrder[] memory rentalOrders) {
         // Instantiate rental orders
         uint256 numOrdersToFulfill = ordersToFulfill.length;
         rentalOrders = new RentalOrder[](numOrdersToFulfill);
@@ -709,24 +721,31 @@ contract OrderFulfiller is OrderCreator {
             rentalOrders[i] = _createRentalOrder(ordersToFulfill[i]);
         }
 
-        // Expect the relevant events to be emitted.
-        for (uint256 i = 0; i < rentalOrders.length; i++) {
-            // only expect the event if its a PAY order
-            if (ordersToFulfill[i].payload.metadata.orderType == OrderType.PAY) {
-                vm.expectEmit({emitter: address(create)});
-                emit Events.RentalOrderStarted(
-                    create.getRentalOrderHash(rentalOrders[i]),
-                    ordersToFulfill[i].payload.metadata.emittedExtraData,
-                    rentalOrders[i].seaportOrderHash,
-                    rentalOrders[i].items,
-                    rentalOrders[i].hooks,
-                    rentalOrders[i].orderType,
-                    rentalOrders[i].lender,
-                    rentalOrders[i].renter,
-                    rentalOrders[i].rentalWallet,
-                    rentalOrders[i].startTimestamp,
-                    rentalOrders[i].endTimestamp
-                );
+        // expect an error if error data was provided
+        if (expectedError.length != 0) {
+            vm.expectRevert(expectedError);
+        }
+        // otherwise, expect the relevant event to be emitted.
+        else {
+            // Expect the relevant events to be emitted.
+            for (uint256 i = 0; i < rentalOrders.length; i++) {
+                // only expect the event if its a PAY order
+                if (ordersToFulfill[i].payload.metadata.orderType == OrderType.PAY) {
+                    vm.expectEmit({emitter: address(create)});
+                    emit Events.RentalOrderStarted(
+                        create.getRentalOrderHash(rentalOrders[i]),
+                        ordersToFulfill[i].payload.metadata.emittedExtraData,
+                        rentalOrders[i].seaportOrderHash,
+                        rentalOrders[i].items,
+                        rentalOrders[i].hooks,
+                        rentalOrders[i].orderType,
+                        rentalOrders[i].lender,
+                        rentalOrders[i].renter,
+                        rentalOrders[i].rentalWallet,
+                        rentalOrders[i].startTimestamp,
+                        rentalOrders[i].endTimestamp
+                    );
+                }
             }
         }
 
