@@ -678,4 +678,26 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         );
         STORE.setMaxConsiderationItems(15);
     }
+
+    function test_Success_SetGuardEmergencyUpgrade() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // set the guard's emergency upgrade contract
+        STORE.setGuardEmergencyUpgrade(address(this));
+
+        // expect the guard's emergency upgrade contract to have changed
+        assertEq(STORE.guardEmergencyUpgrade(), address(this));
+    }
+
+    function test_Reverts_SetGuardEmergencyUpgrade_NoPermissions() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller does not have permissions
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+        );
+        STORE.setGuardEmergencyUpgrade(address(this));
+    }
 }

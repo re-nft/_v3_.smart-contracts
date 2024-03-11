@@ -411,4 +411,26 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         );
         admin.setMaxConsiderationItems(15);
     }
+
+    function test_Success_SetGuardEmergencyUpgrade() public {
+        // impersonate an address with permissions
+        vm.prank(deployer.addr);
+
+        // set the guard's emergency upgrade contract
+        admin.setGuardEmergencyUpgrade(address(this));
+
+        // expect the guard's emergency upgrade contract to have changed
+        assertEq(STORE.guardEmergencyUpgrade(), address(this));
+    }
+
+    function test_Reverts_SetGuardEmergencyUpgrade_NotAdmin() public {
+        // impersonate an address without permissions
+        vm.prank(alice.addr);
+
+        // Expect revert because the caller is not an admin for the admin policy
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
+        );
+        admin.setGuardEmergencyUpgrade(address(this));
+    }
 }

@@ -187,4 +187,11 @@ contract Proxy_Storage_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(abi.encodeWithSelector(Errors.Proxy_OnlyCallByProxy.selector));
         storageImplementation.setMaxConsiderationItems(15);
     }
+
+    function test_Reverts_setGuardEmergencyUpgrade_NotByProxy() public {
+        // expect revert because the implementation contract is accessed
+        // instead of the proxy
+        vm.expectRevert(abi.encodeWithSelector(Errors.Proxy_OnlyCallByProxy.selector));
+        storageImplementation.setGuardEmergencyUpgrade(address(this));
+    }
 }
