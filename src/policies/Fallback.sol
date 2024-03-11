@@ -112,8 +112,8 @@ contract Fallback is Policy, TokenReceiver, ISignatureValidator, HandlerContext 
         // Get the original sender. This is the address that called the safe.
         address originalSender = _msgSender();
 
-        // Determine if the original sender is a token that has been whitelisted.
-        if (STORE.whitelistedAssets(originalSender)) {
+        // Determine if the original sender is a token that is restricted for permit.
+        if (STORE.assetRestrictedForPermit(originalSender)) {
             revert Errors.FallbackPolicy_UnauthorizedSender(originalSender);
         }
 

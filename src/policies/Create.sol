@@ -843,7 +843,7 @@ contract Create is Policy, Signer, Zone, Accumulator, TokenReceiver {
             address token = items[i].token;
 
             // Check that a rented asset exists in the whitelisted assets mapping.
-            if (items[i].isRental() && !STORE.whitelistedAssets(token)) {
+            if (items[i].isRental() && !STORE.assetEnabledForRent(token)) {
                 revert Errors.CreatePolicy_AssetNotWhitelisted(token);
             }
 

@@ -52,10 +52,11 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         vm.prank(deployer.addr);
 
         // enable this address to be added as a module by rental safes
-        admin.toggleWhitelistAsset(TOKEN, true);
+        admin.toggleWhitelistAsset(TOKEN, uint8(3));
 
         // assert the address is whitelisted
-        assertTrue(STORE.whitelistedAssets(TOKEN));
+        assertTrue(STORE.assetEnabledForRent(TOKEN));
+        assertTrue(STORE.assetRestrictedForPermit(TOKEN));
     }
 
     function test_Reverts_ToggleWhitelistAsset_NotAdmin() public {
@@ -66,7 +67,7 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
         );
-        admin.toggleWhitelistAsset(TOKEN, true);
+        admin.toggleWhitelistAsset(TOKEN, uint8(3));
     }
 
     function test_Success_ToggleWhitelistAssetBatch() public {
@@ -75,7 +76,7 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
 
         // Plan to whitelist 2 of the 3 assets
         address[] memory assets = new address[](3);
-        bool[] memory enabled = new bool[](3);
+        uint8[] memory bitmaps = new uint8[](3);
 
         // build up the asset batch
         for (uint256 i; i < assets.length; ++i) {
@@ -83,17 +84,22 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         }
 
         // dont whitelist the middle asset
-        enabled[0] = true;
-        enabled[1] = false;
-        enabled[2] = true;
+        bitmaps[0] = uint8(3);
+        bitmaps[1] = uint8(2);
+        bitmaps[2] = uint8(1);
 
         // whitelist the batch of tokens
-        admin.toggleWhitelistAssetBatch(assets, enabled);
+        admin.toggleWhitelistAssetBatch(assets, bitmaps);
 
         // assert the correct addresses are whitelisted
-        assertEq(STORE.whitelistedAssets(assets[0]), true);
-        assertEq(STORE.whitelistedAssets(assets[1]), false);
-        assertEq(STORE.whitelistedAssets(assets[2]), true);
+        assertEq(STORE.assetEnabledForRent(assets[0]), true);
+        assertEq(STORE.assetEnabledForRent(assets[1]), true);
+        assertEq(STORE.assetEnabledForRent(assets[2]), false);
+
+        // assert the proper permit restrictions were applied
+        assertEq(STORE.assetRestrictedForPermit(assets[0]), true);
+        assertEq(STORE.assetRestrictedForPermit(assets[1]), false);
+        assertEq(STORE.assetRestrictedForPermit(assets[2]), true);
     }
 
     function test_Reverts_ToggleWhitelistAssetBatch_NotAdmin() public {
@@ -104,7 +110,7 @@ contract Admin_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.Policy_OnlyRole.selector, toRole("ADMIN_ADMIN"))
         );
-        admin.toggleWhitelistAssetBatch(new address[](0), new bool[](0));
+        admin.toggleWhitelistAssetBatch(new address[](0), new uint8[](0));
     }
 
     function test_Success_ToggleWhitelistPayment() public {

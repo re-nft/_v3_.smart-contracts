@@ -48,7 +48,7 @@ contract Hook_ERC20RewardHook_Test is BaseTest {
 
         // admin whitelists the game token for rental
         vm.prank(deployer.addr);
-        admin.toggleWhitelistAsset(address(gameToken), true);
+        admin.toggleWhitelistAsset(address(gameToken), uint8(3));
 
         // fund the hook contract with some reward tokens
         rewardToken.mint(address(hook), 100e18);

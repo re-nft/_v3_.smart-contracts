@@ -66,8 +66,11 @@ contract StorageBase {
     // Allows for the safe registration of extensions that can be enabled on a safe.
     mapping(address extension => uint8 enabled) public whitelistedExtensions;
 
-    // Allows the use of these whitelisted tokens as rentable assets.
-    mapping(address asset => bool isWhitelisted) public whitelistedAssets;
+    // Mapping of a bitmap which denotes whether the asset is enabled for renting and
+    // whether the asset restricts gasless permit(). By default, an asset that is active
+    // in the protocol should have a value of 0x11, which allows it to be rented and
+    // prevents gasless permit() approvals.
+    mapping(address asset => uint8 assetBitmap) public whitelistedAssets;
 
     // Allows the use of these whitelisted tokens as payments for rentals.
     mapping(address payment => bool isWhitelisted) public whitelistedPayments;
@@ -210,6 +213,26 @@ contract Storage is Proxiable, Module, StorageBase {
     function extensionDisableAllowed(address extension) external view returns (bool) {
         // 1 is 0x01. Determines if the masked bit is enabled.
         return uint8(1) & whitelistedExtensions[extension] != 0;
+    }
+
+    /**
+     * @notice Determines whether the asset is enabled for renting in the protocol
+     *
+     * @param asset Address of the token to rent.
+     */
+    function assetEnabledForRent(address asset) external view returns (bool) {
+        // 2 is 0x10. Determines if the masked bit is enabled.
+        return uint8(2) & whitelistedAssets[asset] != 0;
+    }
+
+    /**
+     * @notice Determines whether the asset is restricted for gasless permit().
+     *
+     * @param asset Address of the token to restrict gassless permit().
+     */
+    function assetRestrictedForPermit(address asset) external view returns (bool) {
+        // 1 is 0x01. Determines if the masked bit is enabled.
+        return uint8(1) & whitelistedAssets[asset] != 0;
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -386,8 +409,7 @@ contract Storage is Proxiable, Module, StorageBase {
             revert Errors.StorageModule_NotContract(extension);
 
         // 3 is 0x11. This ensures that only a valid bitmap can be set.
-        if (bitmap > uint8(3))
-            revert Errors.StorageModule_InvalidWhitelistExtensionBitmap(bitmap);
+        if (bitmap > uint8(3)) revert Errors.StorageModule_InvalidWhitelistBitmap(bitmap);
 
         // Update the extension.
         whitelistedExtensions[extension] = bitmap;
@@ -396,37 +418,45 @@ contract Storage is Proxiable, Module, StorageBase {
     /**
      * @notice Toggles whether a token can be rented.
      *
-     * @param asset     Token address which can be rented via the protocol.
-     * @param isEnabled Boolean indicating whether the token is whitelisted.
+     * @param asset  Token address which can be rented via the protocol.
+     * @param bitmap Bitmap that denotes whether an asset can be rented.
      */
     function toggleWhitelistAsset(
         address asset,
-        bool isEnabled
+        uint8 bitmap
     ) external onlyByProxy permissioned {
-        whitelistedAssets[asset] = isEnabled;
+        // 3 is 0x11. This ensures that only a valid bitmap can be set.
+        if (bitmap > uint8(3)) revert Errors.StorageModule_InvalidWhitelistBitmap(bitmap);
+
+        // Update the asset whitelist.
+        whitelistedAssets[asset] = bitmap;
     }
 
     /**
      * @notice Toggles whether a batch of tokens can be rented.
      *
-     * @param assets    Token array which can be rented via the protocol.
-     * @param isEnabled Boolean array indicating whether those token are whitelisted.
+     * @param assets  Token array which can be rented via the protocol.
+     * @param bitmaps Bitmap array indicating whether those token are whitelisted.
      */
     function toggleWhitelistAssetBatch(
         address[] memory assets,
-        bool[] memory isEnabled
+        uint8[] memory bitmaps
     ) external onlyByProxy permissioned {
         // Check that the arrays are the same length
-        if (assets.length != isEnabled.length) {
+        if (assets.length != bitmaps.length) {
             revert Errors.StorageModule_WhitelistBatchLengthMismatch(
                 assets.length,
-                isEnabled.length
+                bitmaps.length
             );
         }
 
         // Process each whitelist entry
         for (uint256 i; i < assets.length; ++i) {
-            whitelistedAssets[assets[i]] = isEnabled[i];
+            // 3 is 0x11. This ensures that only a valid bitmap can be set.
+            if (bitmaps[i] > uint8(3))
+                revert Errors.StorageModule_InvalidWhitelistBitmap(bitmaps[i]);
+
+            whitelistedAssets[assets[i]] = bitmaps[i];
         }
     }
 

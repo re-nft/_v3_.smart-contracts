@@ -464,33 +464,61 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         // Expect revert because the extension bitmap is greater than 0x11
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.StorageModule_InvalidWhitelistExtensionBitmap.selector,
+                Errors.StorageModule_InvalidWhitelistBitmap.selector,
                 uint8(4)
             )
         );
         STORE.toggleWhitelistExtension(address(this), uint8(4));
     }
 
-    function test_Success_ToggleWhitelistAsset() public {
+    function test_Success_ToggleWhitelistAsset_EnableRent_RestrictPermit() public {
         // impersonate an address with permissions
         vm.prank(address(admin));
 
         // enable this address to be used as a rented asset
-        STORE.toggleWhitelistAsset(TEST_ADDR_1, true);
+        STORE.toggleWhitelistAsset(TEST_ADDR_1, uint8(3));
 
         // assert the address is whitelisted
-        assertTrue(STORE.whitelistedAssets(TEST_ADDR_1));
+        assertTrue(STORE.assetEnabledForRent(TEST_ADDR_1));
+        assertTrue(STORE.assetRestrictedForPermit(TEST_ADDR_1));
     }
 
-    function test_Reverts_ToggleWhitelistAsset_NoPermissions() public {
-        // impersonate an address without permissions
-        vm.prank(alice.addr);
+    function test_Success_ToggleWhitelistAsset_DisableRent_RestrictPermit() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
 
-        // Expect revert because the caller does not have permissions
+        // enable this address to be used as a rented asset
+        STORE.toggleWhitelistAsset(TEST_ADDR_1, uint8(1));
+
+        // assert the address is whitelisted
+        assertFalse(STORE.assetEnabledForRent(TEST_ADDR_1));
+        assertTrue(STORE.assetRestrictedForPermit(TEST_ADDR_1));
+    }
+
+    function test_Reverts_ToggleWhitelistAsset_EnableRent_RestrictPermit() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // enable this address to be used as a rented asset
+        STORE.toggleWhitelistAsset(TEST_ADDR_1, uint8(3));
+
+        // assert the address is whitelisted
+        assertTrue(STORE.assetEnabledForRent(TEST_ADDR_1));
+        assertTrue(STORE.assetRestrictedForPermit(TEST_ADDR_1));
+    }
+
+    function test_Reverts_ToggleWhitelistAsset_InvalidBitmap() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Expect revert because the bitmap is greater than 0x11
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
+            abi.encodeWithSelector(
+                Errors.StorageModule_InvalidWhitelistBitmap.selector,
+                uint8(4)
+            )
         );
-        STORE.toggleWhitelistAsset(TEST_ADDR_1, true);
+        STORE.toggleWhitelistAsset(TEST_ADDR_1, uint8(4));
     }
 
     function test_Success_ToggleWhitelistAssetBatch() public {
@@ -499,20 +527,21 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
 
         // Plan to whitelist 3 assets
         address[] memory assets = new address[](3);
-        bool[] memory enabled = new bool[](3);
+        uint8[] memory bitmaps = new uint8[](3);
 
         // build up the asset batch
         for (uint256 i; i < assets.length; ++i) {
             assets[i] = address(erc721s[i]);
-            enabled[i] = true;
+            bitmaps[i] = uint8(3);
         }
 
         // whitelist the batch of tokens
-        STORE.toggleWhitelistAssetBatch(assets, enabled);
+        STORE.toggleWhitelistAssetBatch(assets, bitmaps);
 
         // assert each address is whitelisted
         for (uint256 i; i < assets.length; ++i) {
-            assertTrue(STORE.whitelistedAssets(assets[i]));
+            assertTrue(STORE.assetEnabledForRent(assets[i]));
+            assertTrue(STORE.assetRestrictedForPermit(assets[i]));
         }
     }
 
@@ -528,7 +557,31 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
                 uint256(3)
             )
         );
-        STORE.toggleWhitelistAssetBatch(new address[](2), new bool[](3));
+        STORE.toggleWhitelistAssetBatch(new address[](2), new uint8[](3));
+    }
+
+    function test_Reverts_ToggleWhitelistAssetBatch_InvalidBitmap() public {
+        // impersonate an address with permissions
+        vm.prank(address(admin));
+
+        // Plan to whitelist 3 assets
+        address[] memory assets = new address[](3);
+        uint8[] memory bitmaps = new uint8[](3);
+
+        // build up the asset batch
+        for (uint256 i; i < assets.length; ++i) {
+            assets[i] = address(erc721s[i]);
+            bitmaps[i] = uint8(4);
+        }
+
+        // Expect revert because the bitmap is greater than 0x11
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.StorageModule_InvalidWhitelistBitmap.selector,
+                uint8(4)
+            )
+        );
+        STORE.toggleWhitelistAssetBatch(assets, bitmaps);
     }
 
     function test_Reverts_ToggleWhitelistAssetBatch_NoPermissions() public {
@@ -539,7 +592,7 @@ contract Storage_Unit_Test is BaseTestWithoutEngine {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.Module_PolicyNotAuthorized.selector, alice.addr)
         );
-        STORE.toggleWhitelistAssetBatch(new address[](0), new bool[](0));
+        STORE.toggleWhitelistAssetBatch(new address[](0), new uint8[](0));
     }
 
     function test_Success_ToggleWhitelistPayment() public {
