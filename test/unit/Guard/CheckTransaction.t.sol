@@ -18,7 +18,7 @@ import {
     gnosis_safe_set_fallback_handler_selector
 } from "@src/libraries/RentalConstants.sol";
 import {RentalUtils} from "@src/libraries/RentalUtils.sol";
-import {RentalAssetUpdate, RentalId} from "@src/libraries/RentalStructs.sol";
+import {Actions, RentalAssetUpdate, RentalId} from "@src/libraries/RentalStructs.sol";
 
 import {BaseTestWithoutEngine} from "@test/BaseTest.sol";
 import {
@@ -101,6 +101,69 @@ contract Guard_CheckTransaction_Unit_Test is BaseTestWithoutEngine {
     function _markRentalsAsActive(RentalAssetUpdate[] memory rentalAssets) internal {
         vm.prank(address(create));
         STORE.addRentals(keccak256(abi.encode("someRentalOrderHash")), rentalAssets);
+    }
+
+    function test_Success_CheckTransaction_NotActive_EmergencyUpgrade() public {
+        // impersonate the admin
+        vm.startPrank(deployer.addr);
+
+        // deactivate the current guard policy
+        kernel.executeAction(Actions.DeactivatePolicy, address(guard));
+
+        // set the guard migration contract as the emergency upgrade address
+        admin.setGuardEmergencyUpgrade(address(mockTarget));
+
+        // stop impersonating
+        vm.stopPrank();
+
+        // check the transaction
+        guard.checkTransaction(
+            address(mockTarget),
+            0 ether,
+            hex"a0b1c2d3",
+            Enum.Operation.DelegateCall,
+            0,
+            0,
+            0 ether,
+            ZERO_ADDRESS,
+            payable(ZERO_ADDRESS),
+            bytes(""),
+            ZERO_ADDRESS
+        );
+    }
+
+    function test_Reverts_CheckTransaction_NotActive_NotDelegateCall() public {
+        // impersonate the admin
+        vm.startPrank(deployer.addr);
+
+        // deactivate the current guard policy
+        kernel.executeAction(Actions.DeactivatePolicy, address(guard));
+
+        // set the guard migration contract as the emergency upgrade address
+        admin.setGuardEmergencyUpgrade(address(mockTarget));
+
+        // stop impersonating
+        vm.stopPrank();
+
+        // expect revert because delegate call was not used
+        vm.expectRevert(abi.encodeWithSelector(Errors.GuardPolicy_Deactivated.selector));
+
+        // check the transaction
+        _checkTransaction(address(this), address(mockTarget), hex"a0b1c2d3");
+    }
+
+    function test_Reverts_CheckTransaction_NotActive_NotEmergencyUpgrade() public {
+        // impersonate the admin
+        vm.prank(deployer.addr);
+
+        // deactivate the current guard policy
+        kernel.executeAction(Actions.DeactivatePolicy, address(guard));
+
+        // expect revert because the contract was not set as the emergency upgrade
+        vm.expectRevert(abi.encodeWithSelector(Errors.GuardPolicy_Deactivated.selector));
+
+        // check the transaction
+        _checkTransaction(address(this), address(mockTarget), hex"a0b1c2d3");
     }
 
     function test_Success_CheckTransaction_DelegateCallAllowed() public {

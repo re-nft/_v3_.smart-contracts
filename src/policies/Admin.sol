@@ -68,7 +68,7 @@ contract Admin is Policy {
         onlyKernel
         returns (Permissions[] memory requests)
     {
-        requests = new Permissions[](15);
+        requests = new Permissions[](16);
         requests[0] = Permissions(
             toKeycode("STORE"),
             STORE.toggleWhitelistExtension.selector
@@ -101,11 +101,15 @@ contract Admin is Policy {
             toKeycode("STORE"),
             STORE.setMaxConsiderationItems.selector
         );
+        requests[11] = Permissions(
+            toKeycode("STORE"),
+            STORE.setGuardEmergencyUpgrade.selector
+        );
 
-        requests[11] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
-        requests[12] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
-        requests[13] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
-        requests[14] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
+        requests[12] = Permissions(toKeycode("ESCRW"), ESCRW.skim.selector);
+        requests[13] = Permissions(toKeycode("ESCRW"), ESCRW.setFee.selector);
+        requests[14] = Permissions(toKeycode("ESCRW"), ESCRW.upgrade.selector);
+        requests[15] = Permissions(toKeycode("ESCRW"), ESCRW.freeze.selector);
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -276,5 +280,17 @@ contract Admin is Policy {
         uint256 newConsiderationLength
     ) external onlyRole("ADMIN_ADMIN") {
         STORE.setMaxConsiderationItems(newConsiderationLength);
+    }
+
+    /**
+     * @notice Sets the guard emergency upgrade address.
+     *
+     * @param guardEmergencyUpgradeAddress The contract address which will allow rental
+     * 									   safes to upgrade their guard policy.
+     */
+    function setGuardEmergencyUpgrade(
+        address guardEmergencyUpgradeAddress
+    ) external onlyRole("ADMIN_ADMIN") {
+        STORE.setGuardEmergencyUpgrade(guardEmergencyUpgradeAddress);
     }
 }
