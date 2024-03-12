@@ -116,6 +116,17 @@ interface ISafe {
     function setGuard(address guard) external;
 
     /**
+     * @notice Set Fallback Handler to `handler` for the Safe.
+     *
+     * @dev Only fallback calls without value and with data will be forwarded.
+     *      This can only be done via a Safe transaction.
+     *      Cannot be set to the Safe itself.
+     *
+     * @param handler Contract to handle fallback calls.
+     */
+    function setFallbackHandler(address handler) external;
+
+    /**
      * @notice Sets an initial storage of the Safe contract.
      *
      * @dev This method can only be called once. If a proxy was created without setting

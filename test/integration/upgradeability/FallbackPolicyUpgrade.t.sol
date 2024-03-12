@@ -12,35 +12,35 @@ import {
     RentalOrder
 } from "@src/libraries/RentalStructs.sol";
 import {
-    GuardUpgrade,
-    GuardPolicyMigration
-} from "@src/examples/upgrades/GuardPolicyUpgrade.sol";
+    FallbackUpgrade,
+    FallbackPolicyMigration
+} from "@src/examples/upgrades/FallbackPolicyUpgrade.sol";
 
 import {SafeUtils} from "@test/utils/GnosisSafeUtils.sol";
 import {ProtocolAccount} from "@test/utils/Types.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-contract GuardPolicyUpgrade_Upgradeability_Integration_Test is BaseTest {
+contract FallbackPolicyUpgrade_Upgradeability_Integration_Test is BaseTest {
     // The new policy to upgrade to
-    GuardUpgrade newGuardPolicy;
+    FallbackUpgrade newFallbackPolicy;
 
     // The migration contract
-    GuardPolicyMigration migration;
+    FallbackPolicyMigration migration;
 
     function setUp() public override {
         super.setUp();
 
-        // deploy the new guard policy
-        newGuardPolicy = new GuardUpgrade(kernel);
+        // deploy the new fallback policy
+        newFallbackPolicy = new FallbackUpgrade(kernel);
 
         // deploy the migration contract
-        migration = new GuardPolicyMigration(address(newGuardPolicy));
+        migration = new FallbackPolicyMigration(address(newFallbackPolicy));
 
         // impersonate the deployer which is the kernel admin
         vm.startPrank(deployer.addr);
 
-        // enable the new guard policy
-        kernel.executeAction(Actions.ActivatePolicy, address(newGuardPolicy));
+        // enable the new fallback policy
+        kernel.executeAction(Actions.ActivatePolicy, address(newFallbackPolicy));
 
         // enable the migration contract to be delegate called by rental safes
         admin.toggleWhitelistDelegate(address(migration), true);
@@ -49,26 +49,26 @@ contract GuardPolicyUpgrade_Upgradeability_Integration_Test is BaseTest {
         vm.stopPrank();
     }
 
-    // Demonstrate that the guard can be opt-in upgraded on a wallet via the
-    // use of a whitelisted delegate call contract.
-    function test_Success_GuardTransaction_NewGuardPolicy() public {
+	// Demonstrate that the fallback handler can be opt-in upgraded on a wallet via the 
+	// use of a whitelisted delegate call contract. 
+    function test_Success_FallbackTransaction_NewFallbackPolicy() public {
         // bob migrates the rental wallet
         _performMigration(bob);
 
-        // get the guard contract on the safe
-        address guard = _getGuard(address(bob.safe));
+        // get the fallback contract on the safe
+        address fallbackAddress = _getFallback(address(bob.safe));
 
-        // assert that the guard set on the wallet is the new guard policy
-        assertEq(guard, address(newGuardPolicy));
+        // assert that the fallback set on the wallet is the new fallback policy
+        assertEq(fallbackAddress, address(newFallbackPolicy));
 
-        // assert that the new method on the guard policy can be called
-        assertEq(newGuardPolicy.upgradeSuccess(), true);
+        // assert that the new method on the fallback policy can be called
+        assertEq(newFallbackPolicy.upgradeSuccess(), true);
     }
 
     function _performMigration(ProtocolAccount memory account) internal {
         // create safe transaction to perform the migration
         bytes memory transaction = abi.encodeWithSelector(
-            GuardPolicyMigration.upgrade.selector
+            FallbackPolicyMigration.upgrade.selector
         );
 
         // sign the safe transaction
@@ -91,13 +91,13 @@ contract GuardPolicyUpgrade_Upgradeability_Integration_Test is BaseTest {
         );
     }
 
-    function _getGuard(address safe) internal view returns (address) {
-        // The guard storage slot in the safe
-        bytes32 guardStorageSlot = 0x4a204f620c8c5ccdca3fd54d003badd85ba500436a431f0cbda4f558c93c34c8;
+    function _getFallback(address safe) internal view returns (address) {
+        // The fallback storage slot in the safe
+        bytes32 fallbackStorageSlot = 0x6c9a6c4a39284e37ed1cf53d337577d14212a4870fb976a4366c693b939918d5;
 
         // get the return data
         bytes memory returnData = StorageAccessible(safe).getStorageAt(
-            uint256(guardStorageSlot),
+            uint256(fallbackStorageSlot),
             1
         );
 
