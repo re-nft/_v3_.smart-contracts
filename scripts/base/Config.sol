@@ -5,6 +5,25 @@ import {Script} from "@forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {LibString} from "@solady/utils/LibString.sol";
 
+import "forge-std/console.sol";
+
+struct AssetWhitelist {
+    address asset;
+    bool enableRent;
+    string name;
+    bool preventPermit;
+}
+
+struct PaymentWhitelist {
+    address asset;
+    string name;
+}
+
+struct TestStruct {
+    address asset;
+    string name;
+}
+
 // Contract dedicated to loading in a JSON configuration file for the
 // chain to deploy to
 contract Config is Script {
@@ -37,6 +56,10 @@ contract Config is Script {
     address public conduit;
     bytes32 public conduitKey;
 
+    // whitelists
+    AssetWhitelist[] public assetWhitelist;
+    PaymentWhitelist[] public paymentWhitelist;
+
     constructor(string memory _configPath) {
         // try reading from the config file
         try vm.readFile(_configPath) returns (string memory data) {
@@ -67,6 +90,9 @@ contract Config is Script {
         conduitController = _parseAddress("$.conduitController");
         conduit = _parseAddress("$.conduit");
         conduitKey = _parseBytes32("$.conduitKey");
+
+        // load the whitelists
+        _parsePaymentWhitelistArray("$.paymentWhitelist[*]~");
     }
 
     function _createErrorString(string memory key) internal pure returns (string memory) {
@@ -94,6 +120,26 @@ contract Config is Script {
             return value;
         } catch {
             revert(_createErrorString(key));
+        }
+    }
+
+    function _parsePaymentWhitelistArray(string memory key) internal {
+        // Parse the raw json
+        bytes memory detail = stdJson.parseRaw(_json, key);
+
+        // Decode the payment whitelist entries from JSON
+        PaymentWhitelist[] memory jsonPaymentWhitelistEntries = abi.decode(
+            detail,
+            (PaymentWhitelist[])
+        );
+
+        for (uint256 i; i < jsonPaymentWhitelistEntries.length; ++i) {
+            // Get a pointer to a new payment whitelist entry
+            PaymentWhitelist storage storagePaymentWhitelist = paymentWhitelist.push();
+
+            // Set the JSON entry into storage
+            storagePaymentWhitelist.name = jsonPaymentWhitelistEntries[i].name;
+            storagePaymentWhitelist.asset = jsonPaymentWhitelistEntries[i].asset;
         }
     }
 }

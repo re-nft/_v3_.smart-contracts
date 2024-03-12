@@ -55,8 +55,8 @@ contract BaseDeploy is Deployer {
     Guard public guard;
     Fallback public fallbackPolicy;
 
-    function setUp() public override {
-        super.setUp();
+    function run(string memory chain) public virtual override {
+        super.run(chain);
 
         // load in config values
         seaport = Seaport(payable(config.seaport()));

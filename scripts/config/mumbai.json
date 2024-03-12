@@ -19,5 +19,29 @@
     "seaport": "0x0000000000000000000000000000000000000000",
     "conduitController": "0x0000000000000000000000000000000000000000",
     "conduit": "0x0000000000000000000000000000000000000000",
-    "conduitKey": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    "conduitKey": "0x0000000000000000000000000000000000000000000000000000000000000001",
+	"assetWhitelist": [
+		{
+			"name": "Mock Asset 1",
+			"asset": "0x0000000000000000000000000000000000000123",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Mock Asset 2",
+			"asset": "0x0000000000000000000000000000000000000888",
+			"enableRent": true,
+			"preventPermit": true
+		}
+	],
+	"paymentWhitelist": [
+		{
+			"name": "Mock Payment 1",
+			"asset": "0xc0ffee0000000000000000000000000000000000"
+		},
+		{
+			"name": "Mock Payment 2",
+			"asset": "0xdeadbeefcafe0000000000000000000000000000"
+		}
+	]
 }

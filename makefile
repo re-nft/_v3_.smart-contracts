@@ -16,4 +16,7 @@ deploy :; forge script scripts/$(script).s.sol:$(script) \
 simulate-deploy :; forge script scripts/$(script).s.sol:$(script) \
 	--fork-url $(chain) \
 	--slow \
+	-vvv \
+	--sig 'run(string)' \
+	$(chain) \
 	-vvv
