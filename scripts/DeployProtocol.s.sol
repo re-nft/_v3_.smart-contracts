@@ -4,13 +4,11 @@ pragma solidity ^0.8.0;
 import {console2} from "forge-std/console2.sol";
 
 import {BaseDeploy} from "@scripts/base/BaseDeploy.sol";
-import "forge-std/console.sol";
 
 // Deploys the entire protocol
 contract DeployProtocol is BaseDeploy {
     function run(string memory chain) public override {
         super.run(chain);
-        return;
 
         // deploy the create2 deployer
         _deployCreate2Deployer();
@@ -74,6 +72,12 @@ contract DeployProtocol is BaseDeploy {
         // Set max consideration items
         _setMaxConsiderationItems(10);
 
+        // Set the asset whitelist
+        _updateAssetWhitelist(config.assetWhitelist());
+
+        // Set the payment whitelist
+        _updatePaymentWhitelist(config.paymentWhitelist());
+
         // display banners
         _displayChainInfo();
         _displayProtocolAddressesBanner();
@@ -94,6 +98,13 @@ contract DeployProtocol is BaseDeploy {
         console2.log("Seaport:              %s", address(seaport));
         console2.log("Conduit:              %s", address(conduit));
         console2.log("Conduit Key:          %s", _bytes32ToString(conduitKey));
+        console2.log("");
+
+        // Display asset whitelist banner
+        _displayAssetWhitelistBanner();
+
+        // Display payment whitelist banner
+        _displayPaymentWhitelistBanner();
 
         // display JSON reminder
         _displayUpdatedAddressWarning();

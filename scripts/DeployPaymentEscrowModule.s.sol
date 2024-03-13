@@ -7,7 +7,9 @@ import {BaseDeploy} from "@scripts/base/BaseDeploy.sol";
 
 // Deploys the payment escrow module
 contract DeployPaymentEscrowModule is BaseDeploy {
-    function run() public {
+    function run(string memory chain) public override {
+        super.run(chain);
+
         // generate the salt
         bytes32 salt = _generateSaltWithSender(deployer, protocolVersion);
 

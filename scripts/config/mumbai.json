@@ -22,26 +22,33 @@
     "conduitKey": "0x0000000000000000000000000000000000000000000000000000000000000001",
 	"assetWhitelist": [
 		{
-			"name": "Mock Asset 1",
-			"asset": "0x0000000000000000000000000000000000000123",
+			"name": "Mock ERC721",
+			"asset": "0xe49d89F052D67AB8c228f62c4BFF182d2E9082E8",
 			"enableRent": true,
 			"preventPermit": true
 		},
 		{
-			"name": "Mock Asset 2",
-			"asset": "0x0000000000000000000000000000000000000888",
+			"name": "Mock ERC1155",
+			"asset": "0x365437Ea69D9FB6fc7095B1EBcd7BCbB1421289b",
 			"enableRent": true,
-			"preventPermit": true
+			"preventPermit": true 
 		}
 	],
 	"paymentWhitelist": [
 		{
-			"name": "Mock Payment 1",
-			"asset": "0xc0ffee0000000000000000000000000000000000"
+			"name": "USDC",
+			"asset": "0x9999f7Fea5938fD3b1E26A12c3f2fb024e194f97",
+			"enabled": true
 		},
 		{
-			"name": "Mock Payment 2",
-			"asset": "0xdeadbeefcafe0000000000000000000000000000"
+			"name": "DAI",
+			"asset": "0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F",
+			"enabled": true
+		},
+		{
+			"name": "Mock ERC20",
+			"asset": "0x9999f7Fea5938fD3b1E26A12c3f2fb024e194f97",
+			"enabled": true 
 		}
 	]
 }

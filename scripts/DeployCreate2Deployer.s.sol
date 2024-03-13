@@ -7,7 +7,9 @@ import {BaseDeploy} from "@scripts/base/BaseDeploy.sol";
 
 // Deploys the create2 deployer
 contract DeployCreate2Deployer is BaseDeploy {
-    function run() public {
+    function run(string memory chain) public override {
+        super.run(chain);
+
         // deploy the create2 deployer
         _deployCreate2Deployer();
 

@@ -8,6 +8,7 @@ import {ConduitController} from "@seaport-core/conduit/ConduitController.sol";
 import {LibString} from "@solady/utils/LibString.sol";
 
 import {Deployer} from "@scripts/base/Deployer.sol";
+import {AssetWhitelist, PaymentWhitelist} from "@scripts/base/Config.sol";
 
 import {Create2Deployer} from "@src/Create2Deployer.sol";
 import {Kernel, Actions} from "@src/Kernel.sol";
@@ -92,6 +93,51 @@ contract BaseDeploy is Deployer {
         console2.log("##############################################");
         console2.log("###          PROTOCOL ADDRESSES            ###");
         console2.log("##############################################");
+        console2.log("");
+    }
+
+    function _displayAssetWhitelistBanner() internal view {
+        console2.log("##############################################");
+        console2.log("###           ASSET WHITELIST              ###");
+        console2.log("##############################################");
+
+        AssetWhitelist[] memory assetWhitelist = config.assetWhitelist();
+
+        for (uint256 i; i < assetWhitelist.length; ++i) {
+            console2.log("");
+            console2.log("Name:           %s", assetWhitelist[i].name);
+            console2.log("Asset:          %s", assetWhitelist[i].asset);
+            console2.log("Enable Rent:    %s", assetWhitelist[i].enableRent);
+            console2.log("Prevent Permit: %s", assetWhitelist[i].preventPermit);
+
+            if (i != assetWhitelist.length - 1) {
+                console2.log("");
+                console2.log("----------------------------------------------");
+            }
+        }
+
+        console2.log("");
+    }
+
+    function _displayPaymentWhitelistBanner() internal view {
+        console2.log("##############################################");
+        console2.log("###          PAYMENT WHITELIST             ###");
+        console2.log("##############################################");
+
+        PaymentWhitelist[] memory paymentWhitelist = config.paymentWhitelist();
+
+        for (uint256 i; i < paymentWhitelist.length; ++i) {
+            console2.log("");
+            console2.log("Name:    %s", paymentWhitelist[i].name);
+            console2.log("Asset:   %s", paymentWhitelist[i].asset);
+            console2.log("Enabled: %s", paymentWhitelist[i].enabled);
+
+            if (i != paymentWhitelist.length - 1) {
+                console2.log("");
+                console2.log("----------------------------------------------");
+            }
+        }
+
         console2.log("");
     }
 
@@ -514,5 +560,125 @@ contract BaseDeploy is Deployer {
     ) internal broadcast {
         // Set the max offer items
         admin.setMaxConsiderationItems(considerationItemLength);
+    }
+
+    function _updateAssetWhitelist(AssetWhitelist[] memory whitelist) internal broadcast {
+        require(address(STORE) != address(0), "No STORE address provided in config.");
+        require(address(admin) != address(0), "No admin address provided in config.");
+
+        // create a no-op value
+        uint256 noOp = uint256(keccak256("no-op"));
+
+        // an array which will hold the indices of the whitelist entries which
+        // have changed
+        uint256[] memory changedWhitelistEntries = new uint256[](whitelist.length);
+
+        // counter which will track how many entries need to change
+        uint256 totalUpdatedWhitelistEntries;
+
+        for (uint256 i; i < whitelist.length; ++i) {
+            // Check if the rent status has changed
+            bool rentStatusChanged = STORE.assetEnabledForRent(whitelist[i].asset) !=
+                whitelist[i].enableRent;
+
+            // Check if the permit status has changed
+            bool permitStatusChanged = STORE.assetRestrictedForPermit(
+                whitelist[i].asset
+            ) != whitelist[i].preventPermit;
+
+            if (rentStatusChanged || permitStatusChanged) {
+                changedWhitelistEntries[i] = i;
+
+                // increase total count of whitelist entries
+                totalUpdatedWhitelistEntries++;
+            } else {
+                changedWhitelistEntries[i] = noOp;
+            }
+        }
+
+        address[] memory assets = new address[](totalUpdatedWhitelistEntries);
+        uint8[] memory bitmaps = new uint8[](totalUpdatedWhitelistEntries);
+
+        // create assets and bitmaps arrays
+        for (uint256 i; i < changedWhitelistEntries.length; ++i) {
+            if (changedWhitelistEntries[i] != noOp) {
+                assets[assets.length - totalUpdatedWhitelistEntries] = whitelist[i].asset;
+
+                // build up the bitmap
+                bitmaps[bitmaps.length - totalUpdatedWhitelistEntries] =
+                    (whitelist[i].enableRent ? 2 : 0) |
+                    (whitelist[i].preventPermit ? 1 : 0);
+
+                // move the index forward
+                totalUpdatedWhitelistEntries--;
+            }
+        }
+
+        if (assets.length > 0) {
+            admin.toggleWhitelistAssetBatch(assets, bitmaps);
+
+            console2.log("Total asset whitelist entries changes: %s", assets.length);
+            console2.log("");
+        } else {
+            revert("No changes to the whitelist were specified.");
+        }
+    }
+
+    function _updatePaymentWhitelist(
+        PaymentWhitelist[] memory whitelist
+    ) internal broadcast {
+        require(address(STORE) != address(0), "No STORE address provided in config.");
+        require(address(admin) != address(0), "No admin address provided in config.");
+
+        // create a no-op value
+        uint256 noOp = uint256(keccak256("no-op"));
+
+        // an array which will hold the indices of the whitelist entries which
+        // have changed
+        uint256[] memory changedWhitelistEntries = new uint256[](whitelist.length);
+
+        // counter which will track how many entries need to change
+        uint256 totalUpdatedWhitelistEntries;
+
+        for (uint256 i; i < whitelist.length; ++i) {
+            // Check if the rent status has changed
+            bool enabledStatusChanged = STORE.whitelistedPayments(whitelist[i].asset) !=
+                whitelist[i].enabled;
+
+            if (enabledStatusChanged) {
+                changedWhitelistEntries[i] = i;
+
+                // increase total count of whitelist entries
+                totalUpdatedWhitelistEntries++;
+            } else {
+                changedWhitelistEntries[i] = noOp;
+            }
+        }
+
+        address[] memory assets = new address[](totalUpdatedWhitelistEntries);
+        bool[] memory isEnabled = new bool[](totalUpdatedWhitelistEntries);
+
+        // create assets and bitmaps arrays
+        for (uint256 i; i < changedWhitelistEntries.length; ++i) {
+            if (changedWhitelistEntries[i] != noOp) {
+                assets[assets.length - totalUpdatedWhitelistEntries] = whitelist[i].asset;
+
+                // build up the array of whether the tokens are enabled
+                isEnabled[isEnabled.length - totalUpdatedWhitelistEntries] = whitelist[i]
+                    .enabled;
+
+                // move the index forward
+                totalUpdatedWhitelistEntries--;
+            }
+        }
+
+        if (assets.length > 0) {
+            admin.toggleWhitelistPaymentBatch(assets, isEnabled);
+
+            console2.log("Total payment whitelist entries changes: %s", assets.length);
+            console2.log("");
+        } else {
+            revert("No changes to the whitelist were specified.");
+        }
     }
 }

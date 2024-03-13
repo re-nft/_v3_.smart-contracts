@@ -7,7 +7,9 @@ import {BaseDeploy} from "@scripts/base/BaseDeploy.sol";
 
 // Deploys the admin policy
 contract DeployAdminPolicy is BaseDeploy {
-    function run() public {
+    function run(string memory chain) public override {
+        super.run(chain);
+
         // generate the salt
         bytes32 salt = _generateSaltWithSender(deployer, protocolVersion);
 
