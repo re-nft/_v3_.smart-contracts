@@ -19,18 +19,15 @@ contract Deployer is Script {
     // Deployer address
     address internal deployer;
 
-    function setUp() public virtual {
+    function run(string memory _chain) public virtual {
         // fetch the chain from the environment variables
-        chain = vm.envOr("CHAIN", string(""));
+        chain = _chain;
 
         // fetch the deployer private key
         uint256 deployerPrivateKey = vm.envOr("PRIVATE_KEY_DEPLOYER", uint256(0));
 
         // ensure a chain to deploy on was provided
-        require(
-            bytes(chain).length > 0,
-            "No chain env var provided (make sure $CHAIN is set)"
-        );
+        require(bytes(chain).length > 0, "No chain was provided in script call.");
 
         // ensure a private key was provided
         require(

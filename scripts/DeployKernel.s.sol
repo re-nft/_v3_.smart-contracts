@@ -8,6 +8,8 @@ import {BaseDeploy} from "@scripts/base/BaseDeploy.sol";
 // Deploys the kernel
 contract DeployKernel is BaseDeploy {
     function run() public {
+        super.run(chain);
+
         // generate the salt
         bytes32 salt = _generateSaltWithSender(deployer, protocolVersion);
 

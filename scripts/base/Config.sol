@@ -2,8 +2,20 @@
 pragma solidity ^0.8.0;
 
 import {Script} from "@forge-std/Script.sol";
-import {stdJson} from "forge-std/StdJson.sol";
 import {LibString} from "@solady/utils/LibString.sol";
+
+struct AssetWhitelist {
+    address asset;
+    bool enableRent;
+    string name;
+    bool preventPermit;
+}
+
+struct PaymentWhitelist {
+    address asset;
+    bool enabled;
+    string name;
+}
 
 // Contract dedicated to loading in a JSON configuration file for the
 // chain to deploy to
@@ -37,6 +49,10 @@ contract Config is Script {
     address public conduit;
     bytes32 public conduitKey;
 
+    // whitelists
+    AssetWhitelist[] public _assetWhitelist;
+    PaymentWhitelist[] public _paymentWhitelist;
+
     constructor(string memory _configPath) {
         // try reading from the config file
         try vm.readFile(_configPath) returns (string memory data) {
@@ -67,6 +83,18 @@ contract Config is Script {
         conduitController = _parseAddress("$.conduitController");
         conduit = _parseAddress("$.conduit");
         conduitKey = _parseBytes32("$.conduitKey");
+
+        // load the whitelists
+        _parseAssetWhitelistArray("$.assetWhitelist[*]~");
+        _parsePaymentWhitelistArray("$.paymentWhitelist[*]~");
+    }
+
+    function assetWhitelist() external view returns (AssetWhitelist[] memory) {
+        return _assetWhitelist;
+    }
+
+    function paymentWhitelist() external view returns (PaymentWhitelist[] memory) {
+        return _paymentWhitelist;
     }
 
     function _createErrorString(string memory key) internal pure returns (string memory) {
@@ -94,6 +122,62 @@ contract Config is Script {
             return value;
         } catch {
             revert(_createErrorString(key));
+        }
+    }
+
+    function _parseAssetWhitelistArray(string memory key) internal {
+        // Parse the raw json
+        bytes memory value = vm.parseJson(_json, key);
+
+        // Error if no key was found
+        if (value.length == 0) {
+            revert(_createErrorString(key));
+        }
+
+        // Decode the asset whitelist entries from JSON
+        AssetWhitelist[] memory jsonAssetWhitelistEntries = abi.decode(
+            value,
+            (AssetWhitelist[])
+        );
+
+        // Add each whitelist entry to storage
+        for (uint256 i; i < jsonAssetWhitelistEntries.length; ++i) {
+            // Get a pointer to a new asset whitelist entry
+            AssetWhitelist storage storageAssetWhitelist = _assetWhitelist.push();
+
+            // Set the JSON entry into storage
+            storageAssetWhitelist.name = jsonAssetWhitelistEntries[i].name;
+            storageAssetWhitelist.asset = jsonAssetWhitelistEntries[i].asset;
+            storageAssetWhitelist.enableRent = jsonAssetWhitelistEntries[i].enableRent;
+            storageAssetWhitelist.preventPermit = jsonAssetWhitelistEntries[i]
+                .preventPermit;
+        }
+    }
+
+    function _parsePaymentWhitelistArray(string memory key) internal {
+        // Parse the raw json
+        bytes memory value = vm.parseJson(_json, key);
+
+        // Error if no key was found
+        if (value.length == 0) {
+            revert(_createErrorString(key));
+        }
+
+        // Decode the payment whitelist entries from JSON
+        PaymentWhitelist[] memory jsonPaymentWhitelistEntries = abi.decode(
+            value,
+            (PaymentWhitelist[])
+        );
+
+        // Add each whitelist entry to storage
+        for (uint256 i; i < jsonPaymentWhitelistEntries.length; ++i) {
+            // Get a pointer to a new payment whitelist entry
+            PaymentWhitelist storage storagePaymentWhitelist = _paymentWhitelist.push();
+
+            // Set the JSON entry into storage
+            storagePaymentWhitelist.name = jsonPaymentWhitelistEntries[i].name;
+            storagePaymentWhitelist.asset = jsonPaymentWhitelistEntries[i].asset;
+            storagePaymentWhitelist.enabled = jsonPaymentWhitelistEntries[i].enabled;
         }
     }
 }

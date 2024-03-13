@@ -9,7 +9,9 @@ import {MockTokenSeeder} from "@test/mocks/tokens/MockTokenSeeder.sol";
 
 // Deploys a mock token seeder for testing
 contract DeployMockTokenSeeder is BaseDeploy {
-    function run() public {
+    function run(string memory chain) public override {
+        super.run(chain);
+
         vm.startBroadcast(deployer);
 
         // deploy mock token seeder

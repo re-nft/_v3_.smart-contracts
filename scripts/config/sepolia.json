@@ -19,5 +19,36 @@
     "seaport": "0x0000000000000000000000000000000000000000",
     "conduitController": "0x0000000000000000000000000000000000000000",
     "conduit": "0x0000000000000000000000000000000000000000",
-    "conduitKey": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    "conduitKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+	"assetWhitelist": [
+		{
+			"name": "Mock ERC721",
+			"asset": "0x5A7577BEB91AE373A7144c6Bd0e0C64Cd0366bf5",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Mock ERC1155",
+			"asset": "0x1f000b1f8C35d23Eb81459145cf61d813016A01E",
+			"enableRent": true,
+			"preventPermit": true 
+		}
+	],
+	"paymentWhitelist": [
+		{
+			"name": "USDC",
+			"asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+			"enabled": true
+		},
+		{
+			"name": "DAI",
+			"asset": "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844",
+			"enabled": true
+		},
+		{
+			"name": "Mock ERC20",
+			"asset": "0xBd891b176a604F0dd29751fCbE7b396Cb9135623",
+			"enabled": true 
+		}
+	]
 }
