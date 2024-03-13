@@ -64,7 +64,7 @@ contract DeployProtocol is BaseDeploy {
         _grantRole("SEAPORT", address(seaport));
 
         // Set max rent duration
-        _setMaxRentDuration(21 days);
+        _setMaxRentDuration(30 days);
 
         // Set max offer items
         _setMaxOfferItems(10);
