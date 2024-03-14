@@ -8,6 +8,7 @@
 
 deploy :; forge script scripts/$(script).s.sol:$(script) \
 	--fork-url $(chain) \
+	--with-gas-price $(gas-price) \
 	--slow \
 	--verify \
 	--broadcast \
@@ -16,6 +17,7 @@ deploy :; forge script scripts/$(script).s.sol:$(script) \
 	-vvv
 
 simulate-deploy :; forge script scripts/$(script).s.sol:$(script) \
+	--with-gas-price $(gas-price) \
 	--fork-url $(chain) \
 	--slow \
 	--sig 'run(string)' \
