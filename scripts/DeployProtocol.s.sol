@@ -96,6 +96,7 @@ contract DeployProtocol is BaseDeploy {
         console2.log("Fallback Policy:      %s", address(fallbackPolicy));
         console2.log("Factory Policy:       %s", address(factory));
         console2.log("Seaport:              %s", address(seaport));
+        console2.log("Conduit Controller:   %s", address(conduitController));
         console2.log("Conduit:              %s", address(conduit));
         console2.log("Conduit Key:          %s", _bytes32ToString(conduitKey));
         console2.log("");
