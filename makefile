@@ -23,3 +23,19 @@ simulate-deploy :; forge script scripts/$(script).s.sol:$(script) \
 	--sig 'run(string)' \
 	$(chain) \
 	-vvv
+
+#############################
+## PROTOCOL UPDATE SCRIPTS ##
+#############################
+
+update-policy-activation-status:
+	forge script scripts/UpdatePolicyActivationStatus.s.sol:UpdatePolicyActivationStatus \
+		--with-gas-price $(gas-price) \
+		--fork-url $(chain) \
+		--slow \
+		--broadcast \
+		--sig 'run(string,address,bool)' \
+		$(chain) \
+		$(policy) \
+		$(is-enabled) \
+		-vvv

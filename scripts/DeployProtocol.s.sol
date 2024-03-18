@@ -50,6 +50,7 @@ contract DeployProtocol is BaseDeploy {
         );
 
         // set up the policies
+        _setUpPolicy(address(factory));
         _setUpPolicy(address(admin));
         _setUpPolicy(address(stop));
         _setUpPolicy(address(guard));
@@ -78,11 +79,11 @@ contract DeployProtocol is BaseDeploy {
         // Set the payment whitelist
         _updatePaymentWhitelist(config.paymentWhitelist());
 
-        // display banners
+        // Display banners
         _displayChainInfo();
         _displayProtocolAddressesBanner();
 
-        // output addresses
+        // Output addresses
         console2.log("Create2 Deployer:     %s", address(create2Deployer));
         console2.log("Kernel:               %s", address(kernel));
         console2.log("STORE Module:         %s", address(STORE));
@@ -107,7 +108,7 @@ contract DeployProtocol is BaseDeploy {
         // Display payment whitelist banner
         _displayPaymentWhitelistBanner();
 
-        // display JSON reminder
+        // Display JSON reminder
         _displayUpdatedAddressWarning();
     }
 }
