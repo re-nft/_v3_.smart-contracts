@@ -22,7 +22,13 @@
     "conduitKey": "0x9ce69a314330687f1fb1ad1d397a0bb55d5e1d22ada5013122d395ba3c547722",
 	"assetWhitelist": [
 		{
-			"name": "Mock ERC721",
+			"name": "Mock ERC721 Legacy",
+			"asset": "0x450ebceb8374a56f0122335dc860c5dcb92637a2",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Mock ERC721 New",
 			"asset": "0x5A7577BEB91AE373A7144c6Bd0e0C64Cd0366bf5",
 			"enableRent": true,
 			"preventPermit": true
@@ -46,7 +52,12 @@
 			"enabled": true
 		},
 		{
-			"name": "Mock ERC20",
+			"name": "Mock ERC20 Legacy",
+			"asset": "0xc41ce09e43b8be66f7eeee3bf7d94aff6f4649fd",
+			"enabled": true 
+		},
+		{
+			"name": "Mock ERC20 New",
 			"asset": "0xBd891b176a604F0dd29751fCbE7b396Cb9135623",
 			"enabled": true 
 		}
