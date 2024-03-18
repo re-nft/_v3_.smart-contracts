@@ -11,7 +11,7 @@ import {Deployer} from "@scripts/base/Deployer.sol";
 import {AssetWhitelist, PaymentWhitelist} from "@scripts/base/Config.sol";
 
 import {Create2Deployer} from "@src/Create2Deployer.sol";
-import {Kernel, Actions} from "@src/Kernel.sol";
+import {Kernel, Actions, Policy} from "@src/Kernel.sol";
 import {Storage} from "@src/modules/Storage.sol";
 import {PaymentEscrow} from "@src/modules/PaymentEscrow.sol";
 import {Create} from "@src/policies/Create.sol";
@@ -525,6 +525,27 @@ contract BaseDeploy is Deployer {
 
         // Approve the policy
         kernel.executeAction(Actions.ActivatePolicy, policy);
+    }
+
+    function _deactivatePolicy(address policy) internal broadcast {
+        // ensure that the kernel has already been deployed
+        require(address(kernel) != address(0), "No kernel address provided in config.");
+
+        // ensure that the policy has already been deployed
+        require(policy != address(0), "No admin address provided in config.");
+
+        // ensure that all modules have been deployed
+        require(address(STORE) != address(0), "No STORE address provided in config.");
+        require(address(ESCRW) != address(0), "no ESCRW address provided in config");
+
+        // ensure that the policy is already active
+        require(
+            Policy(policy).isActive(),
+            "Policy is not active. Cannot be deactivated."
+        );
+
+        // Deactivate the policy
+        kernel.executeAction(Actions.DeactivatePolicy, policy);
     }
 
     function _setUpModule(address module) internal broadcast {
