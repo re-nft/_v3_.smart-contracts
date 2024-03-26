@@ -30,9 +30,14 @@ remappings = [
 fs_permissions = [{ access = 'read', path = './scripts/config/' }]
 
 [etherscan]
-mumbai = { key = "${API_KEY_POLYGONSCAN}" }
+mainnet = { key = "$API_KEY_ETHERSCAN" }
 sepolia = { key = "${API_KEY_ETHERSCAN}" }
+polygon = { key = "${API_KEY_POLYGONSCAN}" }
+mumbai = { key = "${API_KEY_POLYGONSCAN}" }
+
 
 [rpc_endpoints]
-mumbai = "https://polygon-mumbai.g.alchemy.com/v2/${API_KEY_RPC_MUMBAI}"
+mainnet = "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_RPC_MAINNET}"
 sepolia = "https://eth-sepolia.g.alchemy.com/v2/${API_KEY_RPC_SEPOLIA}"
+polygon = "https://polygon-mainnet.g.alchemy.com/v2/${API_KEY_RPC_POLYGON}"
+mumbai = "https://polygon-mumbai.g.alchemy.com/v2/${API_KEY_RPC_MUMBAI}"

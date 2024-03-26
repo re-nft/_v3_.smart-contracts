@@ -85,8 +85,8 @@ contract Config is Script {
         conduitKey = _parseBytes32("$.conduitKey");
 
         // load the whitelists
-        _parseAssetWhitelistArray("$.assetWhitelist[*]~");
-        _parsePaymentWhitelistArray("$.paymentWhitelist[*]~");
+        _parseAssetWhitelistArray("$.assetWhitelist");
+        _parsePaymentWhitelistArray("$.paymentWhitelist");
     }
 
     function assetWhitelist() external view returns (AssetWhitelist[] memory) {

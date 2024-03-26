@@ -85,6 +85,7 @@ contract BaseDeploy is Deployer {
         console2.log("");
         console2.log("Chain:        %s", chain);
         console2.log("Deployer:     %s", deployer);
+        console2.log("Server signer %s", config.serverSideSigner());
         console2.log("Version:      %s.%s", config.majorVersion(), config.minorVersion());
         console2.log("");
     }
@@ -640,7 +641,9 @@ contract BaseDeploy is Deployer {
 
             console2.log("Total asset whitelist entries changes: %s", assets.length);
             console2.log("");
-        } else {
+        }
+
+        if (assets.length == 0 && whitelist.length != 0) {
             revert("No changes to the whitelist were specified.");
         }
     }
@@ -698,7 +701,9 @@ contract BaseDeploy is Deployer {
 
             console2.log("Total payment whitelist entries changes: %s", assets.length);
             console2.log("");
-        } else {
+        }
+
+        if (assets.length == 0 && whitelist.length != 0) {
             revert("No changes to the whitelist were specified.");
         }
     }
