@@ -28,6 +28,48 @@ To run the static analysis on the contracts:
 slither .
 ```
 
+## Deployment
+Before deploying, first make sure that all relevant API keys are set in the `.env` file. You can reference the `.env.example`
+as a template for properly formatting the environment variables.
+
+Supported chains for deployment include: 
+- `mainnet`: ETH L1 mainnet
+- `sepolia`: ETH L1 testnet
+- `polygon`: Polygon mainnet
+- `mumbai`: Polygon testnet
+
+### Simulating a Deployment
+You can simulate the deployment to get a sense of the gas cost and to double check the 
+output to make sure the right deployer and server signer addresses are being used:
+
+```shell
+make simulate-deploy script=DeployProtocol chain=mainnet gas-price=40000000000
+```
+
+This command simulates a mainnet deploy with a max fee per gas of 40 gwei. 
+You will get an output that looks something like this: 
+
+```shell
+Estimated gas price: 40 gwei
+
+Estimated total gas used for script: 38516728
+
+Estimated amount required: 1.54066912 ETH
+```
+
+### Executing the Deployment
+If everything looks good and the deployer wallet has enough to cover the costs at estimated 
+prices, then you can execute the actual deployment by swapping `simulate-deploy` with `deploy`:
+
+```shell
+make deploy script=DeployProtocol chain=mainnet gas-price=40000000000
+```
+
+It will take a bit of time to execute the deployment, and the scripts will automatically 
+start verifying each contract. It is crucial that the block explorer API keys are set up 
+properly. If the verification fails because of an invalid key, then it will have to be 
+done manually which is a very tedious process.
+
 ## Invariants
 
 - Recipient of ERC721 / ERC1155 tokens is always the reNFT smart contract renter
