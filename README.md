@@ -29,8 +29,8 @@ slither .
 ```
 
 ## Deployment
-Before deploying, first make sure that all relevant API keys are set in the `.env` file. You can reference the `.env.example`
-as a template for properly formatting the environment variables.
+Before deploying, first make sure that all relevant API keys are set in the `.env` file. 
+You can reference the `.env.example` as a template for properly formatting the environment variables.
 
 Supported chains for deployment include: 
 - `mainnet`: ETH L1 mainnet
