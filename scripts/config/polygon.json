@@ -20,6 +20,72 @@
     "conduitController": "0xC6F962276303407E41ad30C9DC13A7a2b709E137",
     "conduit": "0xb8F46FcbA262d7B32B35c5034f6B1341080FEF84",
     "conduitKey": "0x000000b09672e3b045d03fb57db9a37554d49395ada5013122d395ba3c547722",
-	"assetWhitelist": [],
-	"paymentWhitelist": []
+	"assetWhitelist": [
+		{
+			"name": "GensoKishiOnline",
+			"asset": "0xc7a096b4c6610ba3a836070333ff7922b9866a36",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Farcana: Mars Enigma Vault",
+			"asset": "0xaf014bed0f38a7e02593a074e5066da26c576a00",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "DEFY Genesis Masks",
+			"asset": "0xfd257ddf743da7395470df9a0517a2dfbf66d156",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "FancyBirds",
+			"asset": "0xad59ecb77033391e847cc96829b08beb83151088",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "The Red Village Champions",
+			"asset": "0x8a57d0cb88e5dea66383b64669aa98c1ab48f03e",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Chumbi Valley Official",
+			"asset": "0x5492ef6aeeba1a3896357359ef039a8b11621b45",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "DeRace Horses",
+			"asset": "0x9d77cb4d8371736e2a2b2bfaa677b7841cdc8fc1",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "CyberKongz VX",
+			"asset": "0x05df72d911e52ab122f7d9955728bc96a718782c",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Crypto Unicorns Market",
+			"asset": "0xdc0479cc5bba033b3e7de9f178607150b3abce1f",
+			"enableRent": true,
+			"preventPermit": true
+		}
+  ],
+	"paymentWhitelist": [
+		{
+			"name": "USDT",
+			"asset": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+			"enabled": true
+		},
+		{
+			"name": "USDC",
+			"asset": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+			"enabled": true
+		}
+  ]
 }
