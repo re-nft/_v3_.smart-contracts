@@ -176,7 +176,7 @@
 			"asset": "0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6",
 			"enableRent": true,
 			"preventPermit": true
-		},
+		}
   ],
 	"paymentWhitelist": [
 		{
