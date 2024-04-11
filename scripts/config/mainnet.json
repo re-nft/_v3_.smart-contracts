@@ -20,6 +20,174 @@
     "conduitController": "0xC6F962276303407E41ad30C9DC13A7a2b709E137",
     "conduit": "0xb8F46FcbA262d7B32B35c5034f6B1341080FEF84",
     "conduitKey": "0x000000b09672e3b045d03fb57db9a37554d49395ada5013122d395ba3c547722",
-	"assetWhitelist": [],
-	"paymentWhitelist": []
+	"assetWhitelist": [
+		{
+			"name": "NFTrees",
+			"asset": "0xeaa4c58427c184413b04db47889b28b5c98ebb7b",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "BYOPill ",
+			"asset": "0xbd275ce24f32d6ce4e9d9519c55abe9bc0ed7fcf",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Galaxy Fight Club",
+			"asset": "0x3702f4c46785bbd947d59a2516ac1ea30f2babf2",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Treeverse Plots",
+			"asset": "0x1b829b926a14634d36625e60165c0770c09d02b2",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "My Pet Hooligan",
+			"asset": "0x09233d553058c2f42ba751c87816a8e9fae7ef10",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Pixelmon - Generation 1",
+			"asset": "0x32973908faee0bf825a343000fe412ebe56f802a",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "HV-MTL",
+			"asset": "0x4b15a9c28034dc83db40cd810001427d3bd7163d",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "World of Women",
+			"asset": "0xe785e82358879f061bc3dcac6f0444462d4b5330",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "0N1 Force",
+			"asset": "0x3bf2922f4520a8ba0c2efc3d2a1539678dad5e9d",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Cool Cats",
+			"asset": "0x1a92f7381b9f03921564a437210bb9396471050c",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Bored Ape Kennel Club",
+			"asset": "0xba30e5f9bb24caa003e9f2f0497ad287fdf95623",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Otherdeed for Otherside",
+			"asset": "0x34d85c9cdeb23fa97cb08333b511ac86e1c4e258",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Milady Maker",
+			"asset": "0x5af0d9827e0c53e4799bb226655a1de152a425a5",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "BEANZ Official",
+			"asset": "0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Clone X - X Takashi Murakami",
+			"asset": "0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Azuki Elementals",
+			"asset": "0xb6a37b5d14d502c3ab0ae6f3a0e058bc9517786e",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Doodles",
+			"asset": "0x8a90cab2b38dba80c64b7734e58ee1db38b8992e",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Azuki",
+			"asset": "0xed5af388653567af2f388e6224dc7c4b3241c544",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Mutant Ape Yacht Club",
+			"asset": "0x60e4d786628fea6478f785a6d7e704777c86a7c6",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Bored Ape Yacht Club",
+			"asset": "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Lil Pudgys",
+			"asset": "0x524cab2ec69124574082676e6f654a18df49a048",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Pudgy Penguins",
+			"asset": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Rumble Kong League Kongs",
+			"asset": "0xef0182dc0574cd5874494a120750fd222fdb909a",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Rumble Kong League Rookies",
+			"asset": "0x63f421b24cea6765b326753f6d4e558c21ea8f76",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Impostors Genesis Aliens",
+			"asset": "0x3110ef5f612208724ca51f5761a69081809f03b7",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "CrypToadz by GREMPLIN",
+			"asset": "0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6",
+			"enableRent": true,
+			"preventPermit": true
+		},
+  ],
+	"paymentWhitelist": [
+		{
+			"name": "USDT",
+			"asset": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+			"enabled": true
+		},
+		{
+			"name": "USDC",
+			"asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+			"enabled": true
+		}
+  ]
 }
