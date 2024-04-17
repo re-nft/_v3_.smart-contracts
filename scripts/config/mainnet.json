@@ -22,6 +22,18 @@
     "conduitKey": "0x000000b09672e3b045d03fb57db9a37554d49395ada5013122d395ba3c547722",
 	"assetWhitelist": [
 		{
+			"name": "Worldwide Webb Land",
+			"asset": "0xa1d4657e0e6507d5a94d06da93e94dc7c8c44b51",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
+			"name": "Worldwide Webb Items",
+			"asset": "0x0812074e395b711910f2fba9f129078918ade855",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
 			"name": "NFTrees",
 			"asset": "0xeaa4c58427c184413b04db47889b28b5c98ebb7b",
 			"enableRent": true,
