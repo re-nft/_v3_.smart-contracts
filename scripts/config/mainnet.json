@@ -22,6 +22,12 @@
     "conduitKey": "0x000000b09672e3b045d03fb57db9a37554d49395ada5013122d395ba3c547722",
 	"assetWhitelist": [
 		{
+			"name": "Pirate Nation - Founder's Pirates",
+			"asset": "0x1b41d54b3f8de13d58102c50d7431fd6aa1a2c48",
+			"enableRent": true,
+			"preventPermit": true
+		},
+		{
 			"name": "Worldwide Webb Land",
 			"asset": "0xa1d4657e0e6507d5a94d06da93e94dc7c8c44b51",
 			"enableRent": true,
